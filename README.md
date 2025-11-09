@@ -29,7 +29,10 @@ In order to manage possible big numbers of time slots and corresponding keys, a 
 
 All commuications for group key distribution are performed using MQTT. A specific key distribution protocol have been defined for this purpose.
 
-The server can be run on a Java 10+ JVM. It just requires a standard MQTT (e.g. Eclipse mosquitto) running and reachable at a given IP address.
+The server can be run on a Java 10+ JVM. It just requires a standard MQTT (e.g. Eclipse mosquitto) running and reachable at a given IP address:
+``` bash
+java -cp "lib/*" assist.
+```
 
 
 
@@ -40,7 +43,7 @@ It supports different command-line options that can be shown using the ‘-h’ 
 
 ### Dependencies
 
-The following libraries are required (for simplicity they are included in the /lib folder):
+The following libraries are required (included in the /lib folder):
 * [zutil](https://github.com/zoolu-org/zutil) - it is a collection of some utilities; in particular ipstack Lorawan uses zutil for managing command line options, for handling byte arrays, as JSON parser, and for handling logs.
 * [ipstack](https://github.com/ipstack-dev/ipstack) - it is mainly a TCP/IP library; however it provides also generic support for handling packets aat different protocol layer.
 * [paho-mqtt](https://github.com/eclipse-paho/paho.mqtt.java) - Eclipse Java library providing the implementation of both MQTT v3.1 and MQTT v5.0.
