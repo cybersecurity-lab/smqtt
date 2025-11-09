@@ -1,6 +1,4 @@
-# E2E Security for IIoT M2M Communications
-
-## Secure MQTT
+# Secure MQTT
 
 Java implementation of a MQTT extension for providing end-to-end (E2E) security to MQTT applications.
 
