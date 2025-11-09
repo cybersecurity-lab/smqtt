@@ -31,7 +31,7 @@ All commuications for group key distribution are performed using MQTT. A specifi
 
 The server can be run on a Java 10+ JVM. It just requires a standard MQTT (e.g. Eclipse mosquitto) running and reachable at a given IP address:
 ``` bash
-java17 -cp lib/* test.GKDServerMain -v
+java -cp l"ib/*" test.GKDServerMain -v
 ```
 
 It supports different command-line options that can be shown using the ‘-h’ option.
