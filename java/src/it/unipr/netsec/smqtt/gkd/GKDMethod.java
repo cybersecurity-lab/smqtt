@@ -1,4 +1,4 @@
-package assist.smqtt.gkd;
+package it.unipr.netsec.smqtt.gkd;
 
 
 public enum GKDMethod {

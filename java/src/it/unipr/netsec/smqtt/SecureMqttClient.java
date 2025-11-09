@@ -1,4 +1,4 @@
-package assist.smqtt;
+package it.unipr.netsec.smqtt;
 
 import java.io.IOException;
 
@@ -7,14 +7,14 @@ import org.zoolu.util.json.Json;
 import org.zoolu.util.log.DefaultLogger;
 import org.zoolu.util.log.LoggerLevel;
 
-import assist.smqtt.gkd.GKDClient;
-import assist.smqtt.gkd.GKDServer;
-import assist.smqtt.gkd.message.AuthenticatedEncryption;
-import assist.smqtt.gkd.message.JoinRequest;
-import assist.smqtt.gkd.message.JoinResponse;
-import assist.smqtt.gkd.method.SlottedGKDClient;
-import assist.smqtt.gkd.method.StaticGKDClient;
-import assist.smqtt.gkd.method.UpdateGKDClient;
+import it.unipr.netsec.smqtt.gkd.GKDClient;
+import it.unipr.netsec.smqtt.gkd.GKDServer;
+import it.unipr.netsec.smqtt.gkd.message.AuthenticatedEncryption;
+import it.unipr.netsec.smqtt.gkd.message.JoinRequest;
+import it.unipr.netsec.smqtt.gkd.message.JoinResponse;
+import it.unipr.netsec.smqtt.gkd.method.SlottedGKDClient;
+import it.unipr.netsec.smqtt.gkd.method.StaticGKDClient;
+import it.unipr.netsec.smqtt.gkd.method.UpdateGKDClient;
 import io.ipstack.mqtt.MqttClient;
 import io.ipstack.mqtt.MqttClientListener;
 import io.ipstack.mqtt.PahoClient;

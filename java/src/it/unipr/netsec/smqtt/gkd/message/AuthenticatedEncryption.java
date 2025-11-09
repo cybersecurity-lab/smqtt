@@ -1,4 +1,4 @@
-package assist.smqtt.gkd.message;
+package it.unipr.netsec.smqtt.gkd.message;
 
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;

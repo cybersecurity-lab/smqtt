@@ -9,10 +9,10 @@ import org.zoolu.util.SystemUtils;
 import org.zoolu.util.log.DefaultLogger;
 import org.zoolu.util.log.WriterLogger;
 
-import assist.smqtt.SecureMqttClient;
-import assist.smqtt.gkd.GKDServer;
-import assist.smqtt.gkd.method.SlottedGKDClient;
-import assist.smqtt.gkd.method.SlottedGKDService;
+import it.unipr.netsec.smqtt.SecureMqttClient;
+import it.unipr.netsec.smqtt.gkd.GKDServer;
+import it.unipr.netsec.smqtt.gkd.method.SlottedGKDClient;
+import it.unipr.netsec.smqtt.gkd.method.SlottedGKDService;
 
 
 /** Simple test program that runs a GKD server and a specified number of SMQTT clients.
@@ -20,14 +20,14 @@ import assist.smqtt.gkd.method.SlottedGKDService;
  * It requires a standard MQTT broker.  The address of the broker can be configured using the default
  * static attribute {@link DEFAULT_GKD_TYPE} or at command-line using the '-b' option.
  */
-public class GKDTest {
-	private GKDTest() {}
+public class GKDMqttTest {
+	private GKDMqttTest() {}
 
 	/** Default MQTT broker */
 	private static String DEFAULT_BROKER= "127.0.0.1:1883";
 
 	/** Default GKD method type (current values: 1=static, 2=update, 3=slotted) */
-	private static int DEFAULT_GKD_TYPE= 3; // 1=static, 2=update, 3=slotted
+	private static int DEFAULT_GKD_TYPE= 2; // 1=static, 2=update, 3=slotted
 	
 	/** Default number of SMQTT clients */
 	private static final int DEFAULT_NUMBER_OF_CLIENTS= 8;
@@ -90,18 +90,20 @@ public class GKDTest {
 		var help= flags.getBoolean("-h","shows this help and extits");
 
 		if (help) {
-			System.out.println(flags.toUsageString(GKDTest.class));
+			System.out.println(flags.toUsageString(GKDMqttTest.class));
 			return;
 		}
 		
 		verbose= true;
-		if (verbose) DefaultLogger.setLogger(new WriterLogger(System.out));
-		//PahoClient.VERBOSE= true;
-		//GKDServer.VERBOSE= true;
-		SlottedGKDService.VERBOSE= true;
-		SecureMqttClient.VERBOSE= true;
-		//SecureMqttClient.DEBUG= true;
-		SlottedGKDClient.VERBOSE= true;
+		if (verbose) {
+			DefaultLogger.setLogger(new WriterLogger(System.out));
+			//PahoClient.VERBOSE= true;
+			//GKDServer.VERBOSE= true;
+			SlottedGKDService.VERBOSE= true;
+			SecureMqttClient.VERBOSE= true;
+			//SecureMqttClient.DEBUG= true;
+			SlottedGKDClient.VERBOSE= true;
+		}
 		
 		SecureMqttClient.GKD_TYPE= gkdType;
 		

@@ -1,4 +1,4 @@
-package assist.smqtt.gkd.method;
+package it.unipr.netsec.smqtt.gkd.method;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -10,11 +10,11 @@ import org.zoolu.util.Range;
 import org.zoolu.util.log.DefaultLogger;
 import org.zoolu.util.log.LoggerLevel;
 
-import assist.smqtt.gkd.GKDClient;
-import assist.smqtt.gkd.ThrowingConsumer;
-import assist.smqtt.gkd.message.JoinRequest;
-import assist.smqtt.gkd.message.JoinResponse;
-import assist.smqtt.gkd.method.keytree.KeyNode;
+import it.unipr.netsec.smqtt.gkd.GKDClient;
+import it.unipr.netsec.smqtt.gkd.ThrowingConsumer;
+import it.unipr.netsec.smqtt.gkd.message.JoinRequest;
+import it.unipr.netsec.smqtt.gkd.message.JoinResponse;
+import it.unipr.netsec.smqtt.gkd.method.keytree.KeyNode;
 
 
 public class SlottedGKDClient implements GKDClient {

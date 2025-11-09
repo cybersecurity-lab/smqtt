@@ -1,4 +1,4 @@
-package assist.smqtt.gkd;
+package it.unipr.netsec.smqtt.gkd;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -8,11 +8,11 @@ import org.zoolu.util.json.Json;
 import org.zoolu.util.log.DefaultLogger;
 import org.zoolu.util.log.LoggerLevel;
 
-import assist.smqtt.gkd.message.JoinRequest;
-import assist.smqtt.gkd.message.JoinResponse;
-import assist.smqtt.gkd.method.SlottedGKDService;
-import assist.smqtt.gkd.method.StaticGKDService;
-import assist.smqtt.gkd.method.UpdateGKDService;
+import it.unipr.netsec.smqtt.gkd.message.JoinRequest;
+import it.unipr.netsec.smqtt.gkd.message.JoinResponse;
+import it.unipr.netsec.smqtt.gkd.method.SlottedGKDService;
+import it.unipr.netsec.smqtt.gkd.method.StaticGKDService;
+import it.unipr.netsec.smqtt.gkd.method.UpdateGKDService;
 import io.ipstack.mqtt.MqttClient;
 import io.ipstack.mqtt.MqttClientListener;
 import io.ipstack.mqtt.PahoClient;

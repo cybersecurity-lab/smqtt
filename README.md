@@ -29,8 +29,14 @@ In order to manage possible big numbers of time slots and corresponding keys, a 
 
 All commuications for group key distribution are performed using MQTT. A specific key distribution protocol have been defined for this purpose.
 
-The server can be run on a Java 10+ JVM and supports different options at command-line that can be shown using the ‘-h’ option.
-It just requires a standard MQTT (e.g. Eclipse mosquitto) running and reachable at a given IP address.
+The server can be run on a Java 10+ JVM. It just requires a standard MQTT (e.g. Eclipse mosquitto) running and reachable at a given IP address.
+
+
+
+It supports different command-line options that can be shown using the ‘-h’ option.
+
+
+
 
 ### Dependencies
 

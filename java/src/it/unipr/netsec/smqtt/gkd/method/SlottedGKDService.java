@@ -1,4 +1,4 @@
-package assist.smqtt.gkd.method;
+package it.unipr.netsec.smqtt.gkd.method;
 
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
@@ -13,12 +13,12 @@ import org.zoolu.util.json.Json;
 import org.zoolu.util.log.DefaultLogger;
 import org.zoolu.util.log.LoggerLevel;
 
-import assist.smqtt.gkd.GKDServer;
-import assist.smqtt.gkd.GKDService;
-import assist.smqtt.gkd.message.JoinRequest;
-import assist.smqtt.gkd.message.JoinResponse;
-import assist.smqtt.gkd.method.keytree.IntRange;
-import assist.smqtt.gkd.method.keytree.KeyNode;
+import it.unipr.netsec.smqtt.gkd.GKDServer;
+import it.unipr.netsec.smqtt.gkd.GKDService;
+import it.unipr.netsec.smqtt.gkd.message.JoinRequest;
+import it.unipr.netsec.smqtt.gkd.message.JoinResponse;
+import it.unipr.netsec.smqtt.gkd.method.keytree.IntRange;
+import it.unipr.netsec.smqtt.gkd.method.keytree.KeyNode;
 
 
 /** 

@@ -1,14 +1,14 @@
-package assist.smqtt.gkd.method;
+package it.unipr.netsec.smqtt.gkd.method;
 
 import java.io.IOException;
 import java.util.HashMap;
 
 import org.zoolu.util.Bytes;
 
-import assist.smqtt.gkd.GKDClient;
-import assist.smqtt.gkd.ThrowingConsumer;
-import assist.smqtt.gkd.message.JoinRequest;
-import assist.smqtt.gkd.message.JoinResponse;
+import it.unipr.netsec.smqtt.gkd.GKDClient;
+import it.unipr.netsec.smqtt.gkd.ThrowingConsumer;
+import it.unipr.netsec.smqtt.gkd.message.JoinRequest;
+import it.unipr.netsec.smqtt.gkd.message.JoinResponse;
 
 
 public class UpdateGKDClient implements GKDClient {

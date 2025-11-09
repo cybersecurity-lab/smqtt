@@ -1,4 +1,4 @@
-package assist.smqtt.gkd.message;
+package it.unipr.netsec.smqtt.gkd.message;
 
 public class JoinRequest {
 

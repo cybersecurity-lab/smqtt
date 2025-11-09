@@ -1,4 +1,4 @@
-package assist.smqtt.gkd.method;
+package it.unipr.netsec.smqtt.gkd.method;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -7,10 +7,10 @@ import java.util.function.Consumer;
 import org.zoolu.util.Bytes;
 import org.zoolu.util.Random;
 
-import assist.smqtt.gkd.GKDServer;
-import assist.smqtt.gkd.GKDService;
-import assist.smqtt.gkd.message.JoinRequest;
-import assist.smqtt.gkd.message.JoinResponse;
+import it.unipr.netsec.smqtt.gkd.GKDServer;
+import it.unipr.netsec.smqtt.gkd.GKDService;
+import it.unipr.netsec.smqtt.gkd.message.JoinRequest;
+import it.unipr.netsec.smqtt.gkd.message.JoinResponse;
 
 
 public class StaticGKDService implements GKDService {

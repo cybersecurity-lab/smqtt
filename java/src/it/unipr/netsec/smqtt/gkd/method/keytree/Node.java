@@ -1,4 +1,4 @@
-package assist.smqtt.gkd.method.keytree;
+package it.unipr.netsec.smqtt.gkd.method.keytree;
 
 
 /**

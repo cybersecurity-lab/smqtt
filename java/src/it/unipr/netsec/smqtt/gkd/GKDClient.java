@@ -1,9 +1,9 @@
-package assist.smqtt.gkd;
+package it.unipr.netsec.smqtt.gkd;
 
 import java.io.IOException;
 
-import assist.smqtt.gkd.message.JoinRequest;
-import assist.smqtt.gkd.message.JoinResponse;
+import it.unipr.netsec.smqtt.gkd.message.JoinRequest;
+import it.unipr.netsec.smqtt.gkd.message.JoinResponse;
 
 
 /** Client-side of a GKD method.
