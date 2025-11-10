@@ -31,7 +31,7 @@ All commuications for group key distribution are performed using MQTT. A specifi
 
 The server can be run on a Java 10+ JVM. It just requires a standard MQTT (e.g. Eclipse mosquitto) running and reachable at a given IP address:
 ``` bash
-java -cp l"ib/*" test.GKDServerMain -v
+java -cp "java/lib/*" test.GKDServerMain -v
 ```
 
 It supports different command-line options that can be shown using the ‘-h’ option.
@@ -39,7 +39,7 @@ It supports different command-line options that can be shown using the ‘-h’ 
 
 ### Dependencies
 
-The following libraries are required (included in the /lib folder):
+The following libraries are required and included in the /java/lib folder:
 * [zutil](https://github.com/zoolu-org/zutil) - it is a collection of some utilities; in particular ipstack Lorawan uses zutil for managing command line options, for handling byte arrays, as JSON parser, and for handling logs.
 * [ipstack](https://github.com/ipstack-dev/ipstack) - it is mainly a TCP/IP library; however it provides also generic support for handling packets aat different protocol layer.
 * [paho-mqtt](https://github.com/eclipse-paho/paho.mqtt.java) - Eclipse Java library providing the implementation of both MQTT v3.1 and MQTT v5.0.
@@ -48,7 +48,14 @@ The following libraries are required (included in the /lib folder):
 
 ## Secure MQTT Client
 
-[TODO]
+When the MQTT broke and GKD server are up, you can run a SMQTT client as follows:
+``` bash
+java -cp "java/lib/*" test.SMqttClientTest -v
+```
+
+This command runs a test SMQTT client that joins a group (default is 'test') and waits for either incomig message or a typed message to send.
+
+Use '-h' option to show all command-line options.
 
 
 
