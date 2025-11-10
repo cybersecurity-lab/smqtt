@@ -69,7 +69,9 @@ This implementation can be easily tested also by launching the test.GKDMqttTest 
 By default it expects a standard MQTT running locally at 127.0.0.1:1883, however the broker address can be expititely configured using the ‘-b’ option.
 
 For running a simple test, open a terminal and run the following command:
-java -cp lib/* test.GKDMqttTest -v
+``` bash
+java -cp "java/lib/*" test.GKDMqttTest -v
+```
 
 This test program lounches a GKD server and n SecureMQTT clients. One of the three GKD methods can be selected.
 By default it expects a MQTT broker running locally at 127.0.0.1:1883, however it can be properly configured, using the ‘-b’ option, to use an external broker.

@@ -80,8 +80,9 @@ public class GKDMqttTest {
 
 	/** Main method.
 	 * @param args command-line options
+	 * @throws IOException 
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		var flags= new Flags(args);
 		var verbose= flags.getBoolean("-v","verbose mode");
 		var broker= flags.getString("-b",DEFAULT_BROKER,"broker","socket address of the MQTT broker");
@@ -120,6 +121,10 @@ public class GKDMqttTest {
 		for (var i: new Range(clientNum)) {
 			SystemUtils.run(() -> client("client-"+i,broker));
 		}
+		
+		System.out.println("Press 'ENTER' to exit");
+		System.in.read();
+		System.exit(0);
 	}
 
 }
