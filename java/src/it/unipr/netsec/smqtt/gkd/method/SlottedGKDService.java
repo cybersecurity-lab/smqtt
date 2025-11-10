@@ -8,7 +8,6 @@ import java.util.function.Consumer;
 import org.zoolu.util.ArrayUtils;
 import org.zoolu.util.Bytes;
 import org.zoolu.util.Random;
-import org.zoolu.util.Range;
 import org.zoolu.util.json.Json;
 import org.zoolu.util.log.DefaultLogger;
 import org.zoolu.util.log.LoggerLevel;
@@ -33,9 +32,11 @@ public class SlottedGKDService implements GKDService {
 	}
 
 
-	public static long SLOT_TIME= 2000; // [ms]
 	public static int START_DELAY= 1; // [slots]
-	public static int DEPTH= 3;
+
+	public static int SLOT_TIME= 10; // 10s
+	public static int TREE_DEPTH= 3;
+
 
 	/** Key k2 for managing unexpected leaving (key revoke) */
 	private byte[] k2;
@@ -52,7 +53,6 @@ public class SlottedGKDService implements GKDService {
 	 * @throws NoSuchAlgorithmException
 	 */
 	public SlottedGKDService() throws NoSuchAlgorithmException, UnsupportedEncodingException {
-
 		k2= Random.nextBytes(GKDServer.KEY_LENGTH);
 
 		// root key
@@ -74,16 +74,16 @@ public class SlottedGKDService implements GKDService {
 	@Override
 	public void handleJoinRequest(JoinRequest joinReq, Consumer<JoinResponse> sender) {
 		if (VERBOSE) log("handleJoinRequest(): "+Json.toJSON(joinReq));
-		int intBegin= joinReq.intBegin;
-		int intEnd= intBegin+joinReq.intLen;
-		//int currentSlot= SlottedTime.getIstance().getValue();
-		//if (intBegin<currentSlot) intBegin= currentSlot;
-		//if (intEnd<currentSlot) intEnd= currentSlot;
+
+		if (joinReq.expires<0) joinReq.expires=0;
+		var elapsedTime= System.currentTimeMillis()-startT;		
+		int intBegin= (int)(elapsedTime/SLOT_TIME/1000);
+		int intEnd= (int)((elapsedTime+joinReq.expires*1000)/SLOT_TIME/1000);
 		
 		var slotRange= new IntRange(intBegin,intEnd-1);
 		if (VERBOSE) log("handleJoinRequest(): slot interval: "+slotRange);
 
-		var selectedNodes= slotRange.generators(DEPTH);
+		var selectedNodes= slotRange.generators(TREE_DEPTH);
 		if (VERBOSE) log("handleJoinRequest(): selected nodes: "+ArrayUtils.toString(selectedNodes));
 		
 		var selectedKeyNodes= new ArrayList<KeyNode>();
@@ -94,8 +94,7 @@ public class SlottedGKDService implements GKDService {
 		var keyMaterial= sb.toString();
 		if (VERBOSE) log("handleJoinRequest(): key material ("+selectedKeyNodes.size()+"): "+keyMaterial);
 		
-		var joinResp= new JoinResponse(joinReq.member,joinReq.group,joinReq.intBegin,joinReq.intLen,keyMaterial);
-		joinResp.time= System.currentTimeMillis()-startT;
+		var joinResp= new JoinResponse(joinReq.member,joinReq.group,joinReq.expires,SLOT_TIME,TREE_DEPTH,elapsedTime,keyMaterial);
 		sender.accept(joinResp);
 	}
 

@@ -39,7 +39,7 @@ public class StaticGKDClient implements GKDClient {
 	}
 
 	@Override
-	public void join(String group, long start, long duration, ThrowingConsumer<JoinRequest> sender) throws IOException {
+	public void join(String group, int expires, ThrowingConsumer<JoinRequest> sender) throws IOException {
 		join(group,sender);
 	}
 

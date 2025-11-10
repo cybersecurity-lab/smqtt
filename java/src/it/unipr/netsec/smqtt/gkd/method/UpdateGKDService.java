@@ -39,14 +39,14 @@ public class UpdateGKDService implements GKDService {
 		var group= groups.get(joinReq.group);
 		if (group.members.contains(joinReq.member)) {
 			// sends the current key only to the client
-			responder.accept(new JoinResponse(joinReq.member,joinReq.group,joinReq.intBegin,joinReq.intLen,Bytes.toHex(group.key)));
+			responder.accept(new JoinResponse(joinReq.member,joinReq.group,joinReq.expires,-1,-1,-1,Bytes.toHex(group.key)));
 		}
 		else {
 			group.key= Random.nextBytes(GKDServer.KEY_LENGTH);
 			group.members.add(joinReq.member);
 			// sends the new key to all clients
 			for (var member : group.members) {
-				responder.accept(new JoinResponse(member,joinReq.group,joinReq.intBegin,joinReq.intLen,Bytes.toHex(group.key)));
+				responder.accept(new JoinResponse(member,joinReq.group,joinReq.expires,-1,-1,-1,Bytes.toHex(group.key)));
 			}
 		}
 	}

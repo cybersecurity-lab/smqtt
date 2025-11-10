@@ -30,17 +30,18 @@ public class GKDMqttTest {
 	private static int DEFAULT_GKD_TYPE= 2; // 1=static, 2=update, 3=slotted
 	
 	/** Default number of SMQTT clients */
-	private static final int DEFAULT_NUMBER_OF_CLIENTS= 8;
+	private static final int DEFAULT_NUMBER_OF_CLIENTS= 3;
 	
 	/** Default MQTT QoS */
 	private static final int PUBLISH_QOS= 2;
 
-	/** Default number of time slots (used only in GKD method type 3) */
-	private static int N= 128;
+	/** Default slot time [s] (used in GKD method type 3) */
+	private static int SLOT_TIME= 10;
+
+	/** Default number of time slots (used in GKD method type 3) */
+	private static int TREE_DEPTH=0;
 	
-	private static int log2(int n) {
-		return 31 - Integer.numberOfLeadingZeros(n);
-	}
+	private static int log2(int n) { return 31 - Integer.numberOfLeadingZeros(n); }
 
 	/**
 	 * @param broker
@@ -56,25 +57,24 @@ public class GKDMqttTest {
 	 * @throws IOException
 	 */
 	public static void client(String id, String broker) throws IOException {
-		SystemUtils.sleep(Random.nextLong(2000));
-		var Key= Random.nextBytes(GKDServer.KEY_LENGTH);
-		var client= new SecureMqttClient(id,Key,broker,null);
+		long startDelay= Random.nextLong(2000);
+		long joinDelay= Random.nextLong(2000);
+		long subscribeDelay= Random.nextLong(1000);
+		long publishDelay= Random.nextLong(5000);
+		
+		SystemUtils.sleep(startDelay);
+		var key= Random.nextBytes(GKDServer.KEY_LENGTH);
+		var client= new SecureMqttClient(id,key,broker,null);
 		client.connect();
-		var joinTime= Random.nextLong(2000);
-		SystemUtils.sleep(joinTime);
-		int intBegin= 0;
-		int intLen= (int)(16000/SlottedGKDService.SLOT_TIME);
-		if (N>0) {
-			intBegin= Random.nextInt(N/2);
-			intLen= Random.nextInt(N/2-intBegin)+1;
-			//client.join("test",intBegin,intLen);
-			client.join("test",0,intBegin+intLen);
+		SystemUtils.sleep(joinDelay);
+		if (TREE_DEPTH>0) {
+			var expires= (int)((1<<TREE_DEPTH)*SLOT_TIME);
+			client.join("test",expires);
 		}
 		else client.join("test");
-		var subscribeTime= Random.nextLong(2000);
-		SystemUtils.sleep(subscribeTime);
+		SystemUtils.sleep(subscribeDelay);
 		client.subscribe("test",2);
-		SystemUtils.sleep(Random.nextLong((intBegin+intLen)*SlottedGKDService.SLOT_TIME - joinTime - subscribeTime));
+		SystemUtils.sleep(publishDelay);
 		client.publish("test",PUBLISH_QOS,("Hello from "+id).getBytes());
 	}
 
@@ -108,11 +108,12 @@ public class GKDMqttTest {
 		SecureMqttClient.GKD_TYPE= gkdType;
 		
 		if (gkdType==3) {
-			SlottedGKDService.DEPTH= log2(N-1)+1;
-			System.out.println("Number of slots: "+N);
-			System.out.println("Tree depth: "+SlottedGKDService.DEPTH);
+			System.out.println("Tree depth: "+TREE_DEPTH);
+			System.out.println("Number of slots: "+(1<<TREE_DEPTH));
+			System.out.println("Slot time: "+SLOT_TIME);
+			SlottedGKDService.TREE_DEPTH= TREE_DEPTH;
+			SlottedGKDService.SLOT_TIME= SLOT_TIME;
 		}
-		else N= 0;
 		
 		SystemUtils.run(() -> server(broker));
 

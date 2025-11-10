@@ -130,7 +130,7 @@ public class SecureCoapClient extends CoapClient {
 				// else
 				var body= new String(payload);
 				joinResp= Json.fromJSON(body,JoinResponse.class);
-				if (VERBOSE) log("processReceivedMessage(): JOIN RESPONSE: group="+joinResp.group+(joinResp.intBegin>=0? ", interval=["+joinResp.intBegin+"-"+(joinResp.intBegin+joinResp.intLen-1)+"]" : "")+", key-material="+joinResp.key);
+				if (VERBOSE) log("processReceivedMessage(): JOIN RESPONSE: group="+joinResp.group+", expires="+joinResp.expires+"s, key-material="+joinResp.key);
 				synchronized (mqttClient) {
 					mqttClient.notifyAll();					
 				}

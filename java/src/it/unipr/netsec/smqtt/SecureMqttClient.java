@@ -134,7 +134,7 @@ public class SecureMqttClient implements MqttClient {
 	}
 
 	/** Joins a group.
-	 * @param group
+	 * @param group group identifier
 	 * @throws IOException
 	 */
 	public void join(String group) throws IOException {
@@ -142,15 +142,14 @@ public class SecureMqttClient implements MqttClient {
 		gkdClient.join(group,(JoinRequest join)->mqttClient.publish(GKDServer.TOPIC_GKD+"/"+GKD_TYPE+"/"+GKDServer.TOPIC_JOIN,GKDServer.DEFAULT_QOS,Json.toJSON(join).getBytes()));
 	}
 
-	/** Joins a group for a given interval.
-	 * @param group
-	 * @param start
-	 * @param duration
+	/** Joins a group for a given time.
+	 * @param group group identifier
+	 * @param expires expiration time [secs]
 	 * @throws IOException
 	 */
-	public void join(String group, long start, long duration) throws IOException {
-		if (VERBOSE) log("join(): JOIN REQUEST: group="+group+", interval=["+start+"-"+(start+duration-1)+"]");
-		gkdClient.join(group,start,duration,(JoinRequest join)->mqttClient.publish(GKDServer.TOPIC_GKD+"/"+GKD_TYPE+"/"+GKDServer.TOPIC_JOIN,GKDServer.DEFAULT_QOS,Json.toJSON(join).getBytes()));
+	public void join(String group, int expires) throws IOException {
+		if (VERBOSE) log("join(): JOIN REQUEST: group="+group+", expires="+expires+"s");
+		gkdClient.join(group,expires,(JoinRequest join)->mqttClient.publish(GKDServer.TOPIC_GKD+"/"+GKD_TYPE+"/"+GKDServer.TOPIC_JOIN,GKDServer.DEFAULT_QOS,Json.toJSON(join).getBytes()));
 	}
 
 	/**
@@ -167,7 +166,7 @@ public class SecureMqttClient implements MqttClient {
 				// else
 				var body= new String(payload);
 				var joinResp= Json.fromJSON(body,JoinResponse.class);
-				if (DEBUG||VERBOSE) log("processReceivedMessage(): JOIN RESPONSE: group="+joinResp.group+(joinResp.intBegin>=0? ", interval=["+joinResp.intBegin+"-"+(joinResp.intBegin+joinResp.intLen-1)+"]" : "")+", key-material="+joinResp.key);
+				if (DEBUG||VERBOSE) log("processReceivedMessage(): JOIN RESPONSE: group="+joinResp.group+", expires="+joinResp.expires+"s, key-material="+joinResp.key);
 				gkdClient.handleJoinResponse(joinResp);					
 			}
 			else {

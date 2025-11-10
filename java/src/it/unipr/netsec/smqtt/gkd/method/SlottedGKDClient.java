@@ -33,9 +33,15 @@ public class SlottedGKDClient implements GKDClient {
 	/** Client secret key */
 	byte[] secretKey;
 	
-	/** Starting time */
+	/** Start time [ms] */
 	private long startT;
+
+	/** Slot time [s] */
+	private int slotTime;
 	
+	/** Tree depth */
+	private int treeDepth;
+
 	/** Group key nodes */
 	HashMap<String,ArrayList<KeyNode>> groupKeyNodes= new HashMap<>();
 
@@ -56,8 +62,8 @@ public class SlottedGKDClient implements GKDClient {
 	
 
 	@Override
-	public void join(String group, long start, long duration, ThrowingConsumer<JoinRequest> sender) throws IOException {
-		var join= new JoinRequest(clientId,group,(int)start,(int)duration);
+	public void join(String group, int expires, ThrowingConsumer<JoinRequest> sender) throws IOException {
+		var join= new JoinRequest(clientId,group,expires);
 		sender.accept(join);
 	}
 	
@@ -67,11 +73,10 @@ public class SlottedGKDClient implements GKDClient {
 		throw new RuntimeException("Currently not supported");
 	}
 
-
 	@Override
 	public byte[] getGroupKey(String group) {
 		long time= System.currentTimeMillis() - startT;
-		var slot= (int)(time/SlottedGKDService.SLOT_TIME);
+		var slot= (int)(time/slotTime);
 		return getGroupKey(group,Integer.valueOf(slot));
 	}
 
@@ -82,8 +87,8 @@ public class SlottedGKDClient implements GKDClient {
 		if (keyNodes==null || keyNodes.size()==0) return null;
 		// else		
 		for (var x: keyNodes) {
-			if (x.leaves(SlottedGKDService.DEPTH).contains(slot)) {
-				return x.successor(SlottedGKDService.DEPTH,slot).key;
+			if (x.leaves(treeDepth).contains(slot)) {
+				return x.successor(treeDepth,slot).key;
 			}
 		}
 		return null;
@@ -92,6 +97,8 @@ public class SlottedGKDClient implements GKDClient {
 	@Override
 	public void handleJoinResponse(JoinResponse joinResp) {
 		startT= System.currentTimeMillis() - joinResp.time;
+		slotTime= joinResp.slot;
+		treeDepth= joinResp.depth;
 		var keyMaterial= joinResp.key.split("&");
 		var k2= Bytes.fromHex(keyMaterial[0]);
 		if (VERBOSE) log("handleJoinResponse(): k2: "+Bytes.toHex(k2));

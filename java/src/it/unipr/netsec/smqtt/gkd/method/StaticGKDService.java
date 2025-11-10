@@ -38,7 +38,7 @@ public class StaticGKDService implements GKDService {
 		}
 		var groupInfo= groups.get(joinReq.group);
 		if (!groupInfo.members.contains(joinReq.member)) groupInfo.members.add(joinReq.member);
-		sender.accept(new JoinResponse(joinReq.member,joinReq.group,joinReq.intBegin,joinReq.intLen,Bytes.toHex(groupInfo.key)));
+		sender.accept(new JoinResponse(joinReq.member,joinReq.group,Bytes.toHex(groupInfo.key)));
 	}
 
 }

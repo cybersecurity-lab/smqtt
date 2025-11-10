@@ -2,6 +2,11 @@ package it.unipr.netsec.smqtt.gkd.message;
 
 public class JoinRequest {
 
+	public String member; // member identifier
+	public String group; // group identifier
+	public int expires= -1; // expiration time [secs]
+
+	
 	protected JoinRequest() {
 	}
 
@@ -10,15 +15,9 @@ public class JoinRequest {
 		this.group= group;
 	}
 	
-	public JoinRequest(String member, String group, int intBegin, int intLen) {
+	public JoinRequest(String member, String group, int expires) {
 		this.member= member;
 		this.group= group;
-		this.intBegin= intBegin;
-		this.intLen= intLen;
+		this.expires= expires;
 	}
-
-	public String member;
-	public String group;
-	public int intBegin= -1;
-	public int intLen= 0;
 }

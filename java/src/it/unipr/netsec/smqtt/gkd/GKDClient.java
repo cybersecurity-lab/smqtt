@@ -19,12 +19,11 @@ public interface GKDClient {
 
 	/** Requests to join a group for a given interval of time.
 	 * @param group the group
-	 * @param start starting time [sec]
-	 * @param duration duration [sec]
+	 * @param expires expiration time [secs]
 	 * @param sender object that can be used for sending JOIN REQUST messages
 	 * @throws IOException
 	 */
-	public void join(String group, long start, long duration, ThrowingConsumer<JoinRequest> sender) throws IOException;
+	public void join(String group, int expires, ThrowingConsumer<JoinRequest> sender) throws IOException;
 	
 	/** Gets the current group key.
 	 * @param group the group
