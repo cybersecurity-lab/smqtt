@@ -14,6 +14,23 @@ In particular, the Secure MQTT protocol here implemented performs group key mana
 For MQTT communications the Eclipse Paho library has been used.
 
 
+## Simple test
+
+This implementation can be easily tested also by launching the test.GKDMqttTest program that runs a GKD server and n SMQTT clients. One of the three GKD methods can be selected (default is 2=update).
+By default it expects a standard MQTT broker locally running at 127.0.0.1:1883, however the broker address can be explcitely configured using the ‘-b’ option.
+
+To run the test, open a terminal and execute the following command:
+``` bash
+java -cp "java/lib/*" test.GKDMqttTest -v
+```
+### Dependencies
+
+The following libraries are required and included in the /java/lib folder:
+* [zutil](https://github.com/zoolu-org/zutil) - it is a collection of some utilities; in particular ipstack Lorawan uses zutil for managing command line options, for handling byte arrays, as JSON parser, and for handling logs.
+* [ipstack](https://github.com/ipstack-dev/ipstack) - it is mainly a TCP/IP library; however it provides also generic support for handling packets aat different protocol layer.
+* [paho-mqtt](https://github.com/eclipse-paho/paho.mqtt.java) - Eclipse Java library providing the implementation of both MQTT v3.1 and MQTT v5.0.
+
+
 
 ## GKD Server
 
@@ -34,17 +51,9 @@ The server can be run on a Java 10+ JVM. It just requires a standard MQTT (e.g. 
 java -cp "java/lib/*" test.GKDServerMain -v
 ```
 
-By default it expects a MQTT broker running locally at 127.0.0.1:1883, however the broker address can be expititely configured using the ‘-b’ option.
+By default it expects the MQTT broker running locally at 127.0.0.1:1883, however the broker address can be explicitly configured using the ‘-b’ option.
 
 All command-line options can be shown using the ‘-h’ option.
-
-
-### Dependencies
-
-The following libraries are required and included in the /java/lib folder:
-* [zutil](https://github.com/zoolu-org/zutil) - it is a collection of some utilities; in particular ipstack Lorawan uses zutil for managing command line options, for handling byte arrays, as JSON parser, and for handling logs.
-* [ipstack](https://github.com/ipstack-dev/ipstack) - it is mainly a TCP/IP library; however it provides also generic support for handling packets aat different protocol layer.
-* [paho-mqtt](https://github.com/eclipse-paho/paho.mqtt.java) - Eclipse Java library providing the implementation of both MQTT v3.1 and MQTT v5.0.
 
 
 
@@ -57,24 +66,9 @@ java -cp "java/lib/*" test.SMqttClientMain -v
 
 This command runs a test SMQTT client that joins a group (default is 'test') and waits for incoming messages or for input messages to be sent (typed at the prompt).
 
-By default it expects a MQTT broker running locally at 127.0.0.1:1883, however the broker address can be expititely configured using the ‘-b’ option.
+By default it expects the MQTT broker running locally at 127.0.0.1:1883, however the broker address can be explicitly configured using the ‘-b’ option.
 
 Use '-h' option to show all command-line options.
-
-
-
-## Simple test
-
-This implementation can be easily tested also by launching the test.GKDMqttTest program that runs a GKD server and n SMQTT clients. One of the three GKD methods can be selected (default is 2=update).
-By default it expects a standard MQTT running locally at 127.0.0.1:1883, however the broker address can be expititely configured using the ‘-b’ option.
-
-For running a simple test, open a terminal and run the following command:
-``` bash
-java -cp "java/lib/*" test.GKDMqttTest -v
-```
-
-This test program lounches a GKD server and n SecureMQTT clients. One of the three GKD methods can be selected.
-By default it expects a MQTT broker running locally at 127.0.0.1:1883, however it can be properly configured, using the ‘-b’ option, to use an external broker.
 
 
 
