@@ -6,6 +6,7 @@ import java.util.HashMap;
 import org.zoolu.util.Bytes;
 
 import it.unipr.netsec.smqtt.gkd.GKDClient;
+import it.unipr.netsec.smqtt.gkd.IndexKeyPair;
 import it.unipr.netsec.smqtt.gkd.ThrowingConsumer;
 import it.unipr.netsec.smqtt.gkd.message.JoinRequest;
 import it.unipr.netsec.smqtt.gkd.message.JoinResponse;
@@ -50,14 +51,14 @@ public class UpdateGKDClient implements GKDClient {
 	}
 
 	@Override
-	public byte[] getGroupKey(String group) {
-		return groupKeys.get(group);
+	public IndexKeyPair getGroupKey(String group) {
+		return new IndexKeyPair(0,groupKeys.get(group));
 	}
 
 	@Override
-	public byte[] getGroupKey(String group, Object obj) {
-		// TODO Auto-generated method stub
-		return null;
+	public byte[] getGroupKey(String group, int index) {
+		if (index==0) return groupKeys.get(group);
+		else return null;
 	}
 
 	@Override

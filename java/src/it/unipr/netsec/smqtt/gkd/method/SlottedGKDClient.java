@@ -11,6 +11,7 @@ import org.zoolu.util.log.DefaultLogger;
 import org.zoolu.util.log.LoggerLevel;
 
 import it.unipr.netsec.smqtt.gkd.GKDClient;
+import it.unipr.netsec.smqtt.gkd.IndexKeyPair;
 import it.unipr.netsec.smqtt.gkd.ThrowingConsumer;
 import it.unipr.netsec.smqtt.gkd.message.JoinRequest;
 import it.unipr.netsec.smqtt.gkd.message.JoinResponse;
@@ -74,21 +75,20 @@ public class SlottedGKDClient implements GKDClient {
 	}
 
 	@Override
-	public byte[] getGroupKey(String group) {
+	public IndexKeyPair getGroupKey(String group) {
 		long time= System.currentTimeMillis() - startT;
 		var slot= (int)(time/slotTime);
-		return getGroupKey(group,Integer.valueOf(slot));
+		return new IndexKeyPair(slot,getGroupKey(group,Integer.valueOf(slot)));
 	}
 
 	@Override
-	public byte[] getGroupKey(String group, Object obj) {
-		int slot= (Integer)obj;
+	public byte[] getGroupKey(String group, int index) {
 		var keyNodes= groupKeyNodes.get(group);
 		if (keyNodes==null || keyNodes.size()==0) return null;
 		// else		
 		for (var x: keyNodes) {
-			if (x.leaves(treeDepth).contains(slot)) {
-				return x.successor(treeDepth,slot).key;
+			if (x.leaves(treeDepth).contains(index)) {
+				return x.successor(treeDepth,index).key;
 			}
 		}
 		return null;

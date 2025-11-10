@@ -159,6 +159,7 @@ public class SecureMqttClient implements MqttClient {
 	private void processReceivedMessage(String topic, int qos, byte[] payload) {
 		try {
 			if (DEBUG) log("processReceivedMessage(): topic="+topic+", len="+payload.length+"B");
+			//if (DEBUG) log("processReceivedMessage(): topic="+topic+", len="+payload.length+", payload="+Bytes.toHex(payload));
 			var topicPath= topic.split("/");
 			if (topicPath[0].equals(GKDServer.TOPIC_GKD)) {
 				if (!topicPath[1].equals(String.valueOf(GKD_TYPE))) throw new IOException("Wrong GKD type: "+topicPath[1]);
@@ -170,7 +171,9 @@ public class SecureMqttClient implements MqttClient {
 				gkdClient.handleJoinResponse(joinResp);					
 			}
 			else {
-				var groupKey= gkdClient.getGroupKey(topic);
+				var index= Bytes.toInt16(payload);
+				payload= Bytes.copy(payload,2,payload.length-2);
+				var groupKey= gkdClient.getGroupKey(topic,index);
 				if (groupKey==null) {
 					if (DEBUG||VERBOSE) log("processReceivedMessage(): No valid group key found: message discarded");
 					return;
@@ -218,16 +221,16 @@ public class SecureMqttClient implements MqttClient {
 	@Override
 	public void publish(String topic, int qos, byte[] payload) throws IOException {
 		if (DEBUG||VERBOSE) log("publish(): topic="+topic+", msg: "+(Bytes.isAscii(payload)? "'"+new String(payload)+"'"  : Bytes.toHex(payload)));
-		byte[] key= gkdClient.getGroupKey(topic);
-		if (key==null) {
+		var indexKeyPair= gkdClient.getGroupKey(topic);
+		if (indexKeyPair==null) {
 			if (DEBUG||VERBOSE) log("publish(): No valid group key found: publishing failed");
 			return;
 		}
-		if (DEBUG) log("publish(): group key: "+Bytes.toHex(key));	
+		if (DEBUG) log("publish(): group key: "+Bytes.toHex(indexKeyPair.key));
 		try {
-			var cipher= new AuthenticatedEncryption(key);
+			var cipher= new AuthenticatedEncryption(indexKeyPair.key);
 			byte[] ciphertext= cipher.encrypt(payload);
-			mqttClient.publish(topic,qos,ciphertext);
+			mqttClient.publish(topic,qos,Bytes.concat(Bytes.fromInt16(indexKeyPair.index),ciphertext));
 		}
 		catch (Exception e) {
 			throw new IOException(e);

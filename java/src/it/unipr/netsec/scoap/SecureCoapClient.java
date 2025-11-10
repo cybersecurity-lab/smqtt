@@ -14,14 +14,13 @@ import org.zoolu.util.log.LoggerLevel;
 
 import it.unipr.netsec.smqtt.gkd.GKDClient;
 import it.unipr.netsec.smqtt.gkd.GKDServer;
+import it.unipr.netsec.smqtt.gkd.IndexKeyPair;
 import it.unipr.netsec.smqtt.gkd.message.AuthenticatedEncryption;
 import it.unipr.netsec.smqtt.gkd.message.JoinRequest;
 import it.unipr.netsec.smqtt.gkd.message.JoinResponse;
 import it.unipr.netsec.smqtt.gkd.method.SlottedGKDClient;
 import it.unipr.netsec.smqtt.gkd.method.StaticGKDClient;
 import it.unipr.netsec.smqtt.gkd.method.UpdateGKDClient;
-import io.ipstack.coap.blockwise.BlockwiseTransactionClient;
-import io.ipstack.coap.blockwise.BlockwiseTransactionClientListener;
 import io.ipstack.coap.client.CoapClient;
 import io.ipstack.coap.client.CoapResponseHandler;
 import io.ipstack.coap.message.CoapRequest;
@@ -148,8 +147,8 @@ public class SecureCoapClient extends CoapClient {
 	public void request(CoapRequest req, InetSocketAddress serverSoaddr, final CoapResponseHandler respHandler) {
 		var resourceName= req.getRequestUriPath();
 		// check whether a valid key for the target resource is already available, otherwise request a new one
-		byte[] key= getGroupKey(resourceName);
-		if (key==null) {
+		var indexKeyPair= getGroupKey(resourceName);
+		if (indexKeyPair==null) {
 			if (VERBOSE) log("request(): no valid group key found: request discarded");
 			// NOTE: SHOULD THROW AN EXCEPTION
 			return;
@@ -160,12 +159,13 @@ public class SecureCoapClient extends CoapClient {
 		if (payload!=null) {
 			if (VERBOSE) log("request(): encrypting the request payload");
 			try {
-				var cipher= new AuthenticatedEncryption(key);
+				var cipher= new AuthenticatedEncryption(indexKeyPair.key);
 				payload= cipher.encrypt(payload);
+				payload= Bytes.concat(Bytes.fromInt16(indexKeyPair.index),payload);
 			}
 			catch (Exception e) {
 				e.printStackTrace();
-				if (VERBOSE) log("request(): encryption error: possible wrong group key: "+Bytes.toHex(key));
+				if (VERBOSE) log("request(): encryption error: possible wrong group key: "+Bytes.toHex(indexKeyPair.key)+(indexKeyPair.index!=0? " ("+indexKeyPair.index+")" : ""));
 				//throw new IOException("request(): Encryption error: possible wrong group key: "+Bytes.toHex(key),e);
 				return;
 			}
@@ -183,12 +183,12 @@ public class SecureCoapClient extends CoapClient {
 				if (payload!=null) {
 					if (VERBOSE) log("request(): decrypting the request payload");
 					try {
-						var cipher= new AuthenticatedEncryption(key);
+						var cipher= new AuthenticatedEncryption(indexKeyPair.key);
 						payload= cipher.decrypt(payload);
 					}
 					catch (Exception e) {
 						e.printStackTrace();
-						if (VERBOSE) log("request(): decryption error: possible wrong group key: "+Bytes.toHex(key));
+						if (VERBOSE) log("request(): encryption error: possible wrong group key: "+Bytes.toHex(indexKeyPair.key)+(indexKeyPair.index!=0? " ("+indexKeyPair.index+")" : ""));
 						//throw new IOException("request(): Encryption error: possible wrong group key: "+Bytes.toHex(key),e);
 						return;
 					}
@@ -206,8 +206,8 @@ public class SecureCoapClient extends CoapClient {
 	public CoapResponse request(CoapRequestMethod method, CoapURI resourceUri, int format, byte[] payload) {
 		var resourceName= resourceUri.getPath().toString();
 		// check whether a valid key for the target resource is already available, otherwise request a new one
-		byte[] key= getGroupKey(resourceName);
-		if (key==null) {
+		var indexKeyPair= getGroupKey(resourceName);
+		if (indexKeyPair==null) {
 			if (VERBOSE) log("request(): no valid group key found: request discarded");
 			// NOTE: SHOULD THROW AN EXCEPTION
 			return null;
@@ -217,28 +217,32 @@ public class SecureCoapClient extends CoapClient {
 		if (payload!=null) {
 			if (VERBOSE) log("request(): encrypting the request payload");
 			try {
-				var cipher= new AuthenticatedEncryption(key);
+				var cipher= new AuthenticatedEncryption(indexKeyPair.key);
 				payload= cipher.encrypt(payload);
+				payload= Bytes.concat(Bytes.fromInt16(indexKeyPair.index),payload);
 			}
 			catch (Exception e) {
 				e.printStackTrace();
-				if (VERBOSE) log("request(): encryption error: possible wrong group key: "+Bytes.toHex(key));
+				if (VERBOSE) log("request(): encryption error: possible wrong group key: "+Bytes.toHex(indexKeyPair.key)+(indexKeyPair.index!=0? " ("+indexKeyPair.index+")" : ""));
 				//throw new IOException("request(): Encryption error: possible wrong group key: "+Bytes.toHex(key),e);
 				return null;
 			}
-		}
+		}	
 		var coapResp= super.request(method,resourceUri,format,payload);
 		payload= coapResp.getPayload();
+		var index= Bytes.toInt16(payload);
+		payload= Bytes.copy(payload,2,payload.length-2);
+		var key= getGroupKey(resourceName,index);
 		// decrypt the payload
 		if (payload!=null) {
 			if (VERBOSE) log("request(): decrypting the request payload");
 			try {
-				var cipher= new AuthenticatedEncryption(key);
+				var cipher= new AuthenticatedEncryption(indexKeyPair.key);
 				payload= cipher.decrypt(payload);
 			}
 			catch (Exception e) {
 				e.printStackTrace();
-				if (VERBOSE) log("request(): decryption error: possible wrong group key: "+Bytes.toHex(key));
+				if (VERBOSE) log("request(): encryption error: possible wrong group key: "+Bytes.toHex(key)+(index!=0? " ("+index+")" : ""));
 				//throw new IOException("request(): Encryption error: possible wrong group key: "+Bytes.toHex(key),e);
 				return null;
 			}
@@ -247,8 +251,48 @@ public class SecureCoapClient extends CoapClient {
 		return coapResp;
 	}
 	
-	private byte[] getGroupKey(String resourceName) {
-		byte[] key= gkdClient.getGroupKey(resourceName);
+	private IndexKeyPair getGroupKey(String resourceName) {
+		var indexKeyPair= gkdClient.getGroupKey(resourceName);
+		if (indexKeyPair!=null) {
+			if (VERBOSE) log("request(): group key already available: "+Bytes.toHex(indexKeyPair.key));
+			return indexKeyPair;
+		}
+		else {
+			if (VERBOSE) log("request(): group key not found: trying to join the group");
+			try {
+				gkdClient.join(resourceName,(JoinRequest join)->mqttClient.publish(GKDServer.TOPIC_GKD+"/"+GKD_TYPE+"/"+GKDServer.TOPIC_JOIN,GKDServer.DEFAULT_QOS,Json.toJSON(join).getBytes()));
+				// TODO
+				
+				if (joinTimeout>0) {
+					new Timer(joinTimeout,new TimerListener() {
+						@Override
+						public void onTimeout(Timer t) {
+							synchronized (mqttClient) {
+								mqttClient.notifyAll();
+							}						
+						}
+					}).start();
+				}
+				// wait for join response, and get key
+				synchronized (mqttClient) {
+					try { mqttClient.wait(); } catch (InterruptedException e) {}
+					if (joinResp!=null) {
+						gkdClient.handleJoinResponse(joinResp);
+						indexKeyPair= gkdClient.getGroupKey(resourceName);
+					}			
+				}
+				return indexKeyPair;
+			}
+			catch (Exception e) {
+				e.printStackTrace();
+				// NOTE: SHOULD THROW AN EXCEPTION
+				return null;
+			}
+		}
+	}
+
+	private byte[] getGroupKey(String resourceName, int index) {
+		var key= gkdClient.getGroupKey(resourceName,index);
 		if (key!=null) {
 			if (VERBOSE) log("request(): group key already available: "+Bytes.toHex(key));
 			return key;
@@ -274,7 +318,7 @@ public class SecureCoapClient extends CoapClient {
 					try { mqttClient.wait(); } catch (InterruptedException e) {}
 					if (joinResp!=null) {
 						gkdClient.handleJoinResponse(joinResp);
-						key= gkdClient.getGroupKey(resourceName);
+						key= gkdClient.getGroupKey(resourceName,index);
 					}			
 				}
 				return key;

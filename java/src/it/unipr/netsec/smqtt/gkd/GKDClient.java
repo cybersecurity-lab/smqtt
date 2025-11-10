@@ -27,16 +27,16 @@ public interface GKDClient {
 	
 	/** Gets the current group key.
 	 * @param group the group
-	 * @return the current group key
+	 * @return the current group key and index
 	 */
-	public byte[] getGroupKey(String group);
+	public IndexKeyPair getGroupKey(String group);
 	
 	/** Gets the current group key.
 	 * @param group the group
-	 * @param obj additional information (like a sequence number or a challenge)
+	 * @param index key index (or 0)
 	 * @return the current group key
 	 */
-	public byte[] getGroupKey(String group, Object obj);
+	public byte[] getGroupKey(String group, int index);
 
 	
 	/** Processes a JOIN RESPONSE message.
