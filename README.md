@@ -34,7 +34,9 @@ The server can be run on a Java 10+ JVM. It just requires a standard MQTT (e.g. 
 java -cp "java/lib/*" test.GKDServerMain -v
 ```
 
-It supports different command-line options that can be shown using the ‘-h’ option.
+By default it expects a MQTT broker running locally at 127.0.0.1:1883, however the broker address can be expititely configured using the ‘-b’ option.
+
+All command-line options can be shown using the ‘-h’ option.
 
 
 ### Dependencies
@@ -50,10 +52,12 @@ The following libraries are required and included in the /java/lib folder:
 
 When the MQTT broke and GKD server are up, you can run a SMQTT client as follows:
 ``` bash
-java -cp "java/lib/*" test.SMqttClientTest -v
+java -cp "java/lib/*" test.SMqttClientMain -v
 ```
 
 This command runs a test SMQTT client that joins a group (default is 'test') and waits for incoming messages or for input messages to be sent (typed at the prompt).
+
+By default it expects a MQTT broker running locally at 127.0.0.1:1883, however the broker address can be expititely configured using the ‘-b’ option.
 
 Use '-h' option to show all command-line options.
 
@@ -61,14 +65,14 @@ Use '-h' option to show all command-line options.
 
 ## Simple test
 
-This implementation can be easily tested by launching the test.GKDMqttTest program that runs a GKD server and n SecureMQTT clients. One of the three GKD methods can be selected.
-By default it expects a standard MQTT running locally at 127.0.0.1:1883, however it can be properly configured, using the ‘-b’ option, to use an external broker.
+This implementation can be easily tested also by launching the test.GKDMqttTest program that runs a GKD server and n SMQTT clients. One of the three GKD methods can be selected (default is 2=update).
+By default it expects a standard MQTT running locally at 127.0.0.1:1883, however the broker address can be expititely configured using the ‘-b’ option.
 
 For running a simple test, open a terminal and run the following command:
 java -cp lib/* test.GKDMqttTest -v
 
 This test program lounches a GKD server and n SecureMQTT clients. One of the three GKD methods can be selected.
-By default it expects a standard MQTT running locally at 127.0.0.1:1883, however it can be properly configured, using the ‘-b’ option, to use an external broker.
+By default it expects a MQTT broker running locally at 127.0.0.1:1883, however it can be properly configured, using the ‘-b’ option, to use an external broker.
 
 
 
