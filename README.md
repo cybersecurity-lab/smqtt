@@ -53,7 +53,7 @@ When the MQTT broke and GKD server are up, you can run a SMQTT client as follows
 java -cp "java/lib/*" test.SMqttClientTest -v
 ```
 
-This command runs a test SMQTT client that joins a group (default is 'test') and waits for either incomig message or a typed message to send.
+This command runs a test SMQTT client that joins a group (default is 'test') and waits for incoming messages or for input messages to be sent (typed at the prompt).
 
 Use '-h' option to show all command-line options.
 
