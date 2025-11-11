@@ -34,8 +34,8 @@ public class SlottedGKDService implements GKDService {
 
 	public static int START_DELAY= 1; // [slots]
 
-	public static int SLOT_TIME= 10; // 10s
-	public static int TREE_DEPTH= 3;
+	public static int TIMESLOT= 10; // 10s
+	public static int TREE_DEPTH= 16; // 65536 slots
 
 
 	/** Key k2 for managing unexpected leaving (key revoke) */
@@ -77,8 +77,8 @@ public class SlottedGKDService implements GKDService {
 
 		if (joinReq.expires<0) joinReq.expires=0;
 		var elapsedTime= System.currentTimeMillis()-startT;		
-		int intBegin= (int)(elapsedTime/SLOT_TIME/1000);
-		int intEnd= (int)((elapsedTime+joinReq.expires*1000)/SLOT_TIME/1000);
+		int intBegin= (int)(elapsedTime/TIMESLOT/1000);
+		int intEnd= (int)((elapsedTime+joinReq.expires*1000)/TIMESLOT/1000);
 		
 		var slotRange= new IntRange(intBegin,intEnd-1);
 		if (VERBOSE) log("handleJoinRequest(): slot interval: "+slotRange);
@@ -94,7 +94,7 @@ public class SlottedGKDService implements GKDService {
 		var keyMaterial= sb.toString();
 		if (VERBOSE) log("handleJoinRequest(): key material ("+selectedKeyNodes.size()+"): "+keyMaterial);
 		
-		var joinResp= new JoinResponse(joinReq.member,joinReq.group,joinReq.expires,SLOT_TIME,TREE_DEPTH,elapsedTime,keyMaterial);
+		var joinResp= new JoinResponse(joinReq.member,joinReq.group,joinReq.expires,TIMESLOT,TREE_DEPTH,elapsedTime,keyMaterial);
 		sender.accept(joinResp);
 	}
 

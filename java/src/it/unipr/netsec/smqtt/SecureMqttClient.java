@@ -158,7 +158,7 @@ public class SecureMqttClient implements MqttClient {
 	 */
 	private void processReceivedMessage(String topic, int qos, byte[] payload) {
 		try {
-			if (DEBUG) log("processReceivedMessage(): topic="+topic+", len="+payload.length+"B");
+			if (DEBUG) log("processReceivedMessage(): topic="+topic+", len="+payload.length);
 			//if (DEBUG) log("processReceivedMessage(): topic="+topic+", len="+payload.length+", payload="+Bytes.toHex(payload));
 			var topicPath= topic.split("/");
 			if (topicPath[0].equals(GKDServer.TOPIC_GKD)) {
@@ -167,7 +167,8 @@ public class SecureMqttClient implements MqttClient {
 				// else
 				var body= new String(payload);
 				var joinResp= Json.fromJSON(body,JoinResponse.class);
-				if (DEBUG||VERBOSE) log("processReceivedMessage(): JOIN RESPONSE: group="+joinResp.group+", expires="+joinResp.expires+"s, key-material="+joinResp.key);
+				//if (DEBUG||VERBOSE) log("processReceivedMessage(): JOIN RESPONSE: group="+joinResp.group+", expires="+joinResp.expires+"s, key-material="+joinResp.key);
+				if (DEBUG||VERBOSE) log("processReceivedMessage(): JOIN RESPONSE: "+Json.toJSON(joinResp));
 				gkdClient.handleJoinResponse(joinResp);					
 			}
 			else {

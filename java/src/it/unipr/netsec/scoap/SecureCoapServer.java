@@ -139,7 +139,7 @@ public class SecureCoapServer extends CoapServer {
 	 */
 	private void processMqttMessage(String topic, int qos, byte[] payload) {
 		try {
-			if (VERBOSE) log("processReceivedMessage(): topic="+topic+", len="+payload.length+"B");
+			if (VERBOSE) log("processReceivedMessage(): topic="+topic+", len="+payload.length);
 			var topicPath= topic.split("/");
 			if (topicPath[0].equals(GKDServer.TOPIC_GKD)) {
 				if (!topicPath[1].equals(String.valueOf(GKD_TYPE))) throw new IOException("Wrong GKD type: "+topicPath[1]);

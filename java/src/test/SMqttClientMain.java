@@ -37,6 +37,7 @@ public class SMqttClientMain {
 	 */
 	public static void main(String[] args) throws IOException {
 		var flags= new Flags(args);
+		var veryVerbose= flags.getBoolean("-vv","very verbose mode");
 		var verbose= flags.getBoolean("-v","verbose mode");
 		var broker= flags.getString("-b",DEFAULT_BROKER,"broker","socket address of the MQTT broker");
 		var gkdType= flags.getInteger("-m",2,"method","group key distribution method (default is 2=update)"); // 1=static, 2=update, 3=slotted
@@ -49,11 +50,11 @@ public class SMqttClientMain {
 			return;
 		}
 		
-		if (verbose) {
+		if (verbose || veryVerbose) {
 			DefaultLogger.setLogger(new WriterLogger(System.out));
 			//PahoClient.VERBOSE= true;
 			SecureMqttClient.VERBOSE= true;
-			//SecureMqttClient.DEBUG= true;
+			if (veryVerbose) SecureMqttClient.DEBUG= true;
 			SlottedGKDClient.VERBOSE= true;
 		}
 		

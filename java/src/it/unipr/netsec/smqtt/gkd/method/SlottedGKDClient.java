@@ -77,12 +77,13 @@ public class SlottedGKDClient implements GKDClient {
 	@Override
 	public IndexKeyPair getGroupKey(String group) {
 		long time= System.currentTimeMillis() - startT;
-		var slot= (int)(time/slotTime);
+		var slot= (int)(time/slotTime/1000);
 		return new IndexKeyPair(slot,getGroupKey(group,Integer.valueOf(slot)));
 	}
 
 	@Override
 	public byte[] getGroupKey(String group, int index) {
+		System.err.println("DEBUG: SlottedGKDClient: getGroupKey(): "+group+","+index);
 		var keyNodes= groupKeyNodes.get(group);
 		if (keyNodes==null || keyNodes.size()==0) return null;
 		// else		

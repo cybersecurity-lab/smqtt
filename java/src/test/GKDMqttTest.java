@@ -113,7 +113,7 @@ public class GKDMqttTest {
 			System.out.println("Number of slots: "+(1<<TREE_DEPTH));
 			System.out.println("Slot time: "+SLOT_TIME);
 			SlottedGKDService.TREE_DEPTH= TREE_DEPTH;
-			SlottedGKDService.SLOT_TIME= SLOT_TIME;
+			SlottedGKDService.TIMESLOT= SLOT_TIME;
 		}
 		
 		SystemUtils.run(() -> server(broker));

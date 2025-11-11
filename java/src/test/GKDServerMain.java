@@ -22,10 +22,6 @@ public class GKDServerMain {
 	/** Default MQTT broker */
 	private static String DEFAULT_BROKER= "127.0.0.1:1883";
 
-	private static int log2(long n) {
-		return 31 - Long.numberOfLeadingZeros(n);
-	}
-
 	/** Main method.
 	 * @param args command-line options
 	 * @throws IOException 
@@ -34,7 +30,8 @@ public class GKDServerMain {
 		var flags= new Flags(args);
 		var verbose= flags.getBoolean("-v","verbose mode");
 		var broker= flags.getString("-b",DEFAULT_BROKER,"broker","socket address of the MQTT broker (default is "+DEFAULT_BROKER+")");
-		var n= flags.getLong("-x",-1,"num","number of time slots (default is "+(1<<SlottedGKDService.TREE_DEPTH)+")");
+		var slot= flags.getInteger("-slot",SlottedGKDService.TIMESLOT,"sec","time slot duration [s] (default is "+SlottedGKDService.TIMESLOT+"s)");
+		var depth= flags.getInteger("-depth",SlottedGKDService.TREE_DEPTH,"depth","tree depth (default is "+SlottedGKDService.TREE_DEPTH+")");
 		var prompt= flags.getBoolean("-prompt","prompts to exit");
 		var help= flags.getBoolean("-h","shows this help and extits");
 
@@ -49,11 +46,15 @@ public class GKDServerMain {
 			SlottedGKDService.VERBOSE= true;
 		}
 		
-		if (n>0) {
-			SlottedGKDService.TREE_DEPTH= log2(n-1)+1;
-			System.out.println("Number of slots: "+n);
-			System.out.println("Tree depth: "+SlottedGKDService.TREE_DEPTH);
-		}
+		SlottedGKDService.TIMESLOT= slot;
+		SlottedGKDService.TREE_DEPTH= depth;
+		System.out.println("Timeslot: "+slot+"s");
+		System.out.println("Tree depth: "+depth);
+		var slotNum= 1L<<depth;
+		System.out.println("Number of slots: "+slotNum);
+		var maxTime= slotNum*slot;
+		System.out.println("Maximum time: "+(maxTime<60? maxTime+"s" : maxTime<3600? maxTime/60+"min" : maxTime<(3600*24)? maxTime/3600+"h" :  maxTime/3600/24+" days"));
+
 		
 		if (prompt) SystemUtils.run(()->{
 			System.out.println("Press 'ENTER' to exit");
