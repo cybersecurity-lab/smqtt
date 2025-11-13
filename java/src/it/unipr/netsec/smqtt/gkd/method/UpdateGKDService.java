@@ -7,7 +7,7 @@ import java.util.function.Consumer;
 import org.zoolu.util.Bytes;
 import org.zoolu.util.Random;
 
-import it.unipr.netsec.smqtt.gkd.GKDServer;
+import it.unipr.netsec.smqtt.gkd.KeyServer;
 import it.unipr.netsec.smqtt.gkd.GKDService;
 import it.unipr.netsec.smqtt.gkd.message.JoinRequest;
 import it.unipr.netsec.smqtt.gkd.message.JoinResponse;
@@ -34,7 +34,7 @@ public class UpdateGKDService implements GKDService {
 	@Override
 	public void handleJoinRequest(JoinRequest joinReq, Consumer<JoinResponse> responder) {
 		if (!groups.containsKey(joinReq.group)) {
-			groups.put(joinReq.group,new GroupInfo(new byte[GKDServer.KEY_LENGTH]));
+			groups.put(joinReq.group,new GroupInfo(new byte[KeyServer.KEY_LENGTH]));
 		}
 		var group= groups.get(joinReq.group);
 		if (group.members.contains(joinReq.member)) {
@@ -42,7 +42,7 @@ public class UpdateGKDService implements GKDService {
 			responder.accept(new JoinResponse(joinReq.member,joinReq.group,joinReq.expires,-1,-1,-1,Bytes.toHex(group.key)));
 		}
 		else {
-			group.key= Random.nextBytes(GKDServer.KEY_LENGTH);
+			group.key= Random.nextBytes(KeyServer.KEY_LENGTH);
 			group.members.add(joinReq.member);
 			// sends the new key to all clients
 			for (var member : group.members) {

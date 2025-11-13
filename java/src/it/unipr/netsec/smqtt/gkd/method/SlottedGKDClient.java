@@ -83,7 +83,6 @@ public class SlottedGKDClient implements GKDClient {
 
 	@Override
 	public byte[] getGroupKey(String group, int index) {
-		System.err.println("DEBUG: SlottedGKDClient: getGroupKey(): "+group+","+index);
 		var keyNodes= groupKeyNodes.get(group);
 		if (keyNodes==null || keyNodes.size()==0) return null;
 		// else		

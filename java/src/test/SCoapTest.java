@@ -13,7 +13,7 @@ import org.zoolu.util.log.WriterLogger;
 import it.unipr.netsec.scoap.SecureCoapClient;
 import it.unipr.netsec.scoap.SecureCoapServer;
 import it.unipr.netsec.smqtt.SecureMqttClient;
-import it.unipr.netsec.smqtt.gkd.GKDServer;
+import it.unipr.netsec.smqtt.gkd.KeyServer;
 import it.unipr.netsec.smqtt.gkd.method.SlottedGKDClient;
 import it.unipr.netsec.smqtt.gkd.method.SlottedGKDService;
 import io.ipstack.coap.client.CoapResponseHandler;
@@ -24,8 +24,8 @@ import io.ipstack.coap.provider.CoapURI;
 import io.ipstack.coap.server.CoapResource;
 import io.ipstack.coap.server.CoapServer;
 
-public class GKDCoapTest {
-	private GKDCoapTest() {}
+public class SCoapTest {
+	private SCoapTest() {}
 
 	static final int COAP_PORT= 5683;
 	
@@ -41,12 +41,12 @@ public class GKDCoapTest {
 		// verbose mode
 		DefaultLogger.setLogger(new WriterLogger(System.out));
 		//PahoClient.VERBOSE= true;
-		GKDServer.VERBOSE= true;
+		KeyServer.VERBOSE= true;
 		SecureCoapClient.VERBOSE= true;
 		//SecureCoapServer.VERBOSE= true;
 		
-		// GKD server
-		SystemUtils.run(() -> new GKDServer("server",broker));
+		// Key Server
+		SystemUtils.run(() -> new KeyServer("server",broker));
 		
 		// CoAP server
 		var serverId= "server-"+Random.nextInt();

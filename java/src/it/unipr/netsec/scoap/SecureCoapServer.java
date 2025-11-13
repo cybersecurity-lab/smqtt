@@ -12,7 +12,7 @@ import org.zoolu.util.log.DefaultLogger;
 import org.zoolu.util.log.LoggerLevel;
 
 import it.unipr.netsec.smqtt.gkd.GKDClient;
-import it.unipr.netsec.smqtt.gkd.GKDServer;
+import it.unipr.netsec.smqtt.gkd.KeyServer;
 import it.unipr.netsec.smqtt.gkd.IndexKeyPair;
 import it.unipr.netsec.smqtt.gkd.message.AuthenticatedEncryption;
 import it.unipr.netsec.smqtt.gkd.message.JoinRequest;
@@ -42,7 +42,7 @@ public class SecureCoapServer extends CoapServer {
 	
 	public static int GKD_TYPE= 1; // 1=static, 2=update, 3=slotted
 
-	/** Id for communicating with the GKD server */
+	/** Id for communicating with the Key Server */
 	String clientId= "client-"+Random.nextInt();
 	
 	/** Long-term server secret key */
@@ -100,7 +100,7 @@ public class SecureCoapServer extends CoapServer {
 
 		mqttClient.connect();
 		SystemUtils.sleep(1000);
-		mqttClient.subscribe(GKDServer.TOPIC_GKD+"/+/"+clientId,GKDServer.DEFAULT_QOS);
+		mqttClient.subscribe(KeyServer.TOPIC_GKD+"/+/"+clientId,KeyServer.DEFAULT_QOS);
 	}
 	
 	
@@ -141,7 +141,7 @@ public class SecureCoapServer extends CoapServer {
 		try {
 			if (VERBOSE) log("processReceivedMessage(): topic="+topic+", len="+payload.length);
 			var topicPath= topic.split("/");
-			if (topicPath[0].equals(GKDServer.TOPIC_GKD)) {
+			if (topicPath[0].equals(KeyServer.TOPIC_GKD)) {
 				if (!topicPath[1].equals(String.valueOf(GKD_TYPE))) throw new IOException("Wrong GKD type: "+topicPath[1]);
 				if (!topicPath[2].equals(clientId)) throw new IOException("Wrong client id: "+topicPath[2]);
 				// else
@@ -171,7 +171,7 @@ public class SecureCoapServer extends CoapServer {
 		else {
 			if (VERBOSE) log("request(): group key not found: trying to join the group");
 			try {
-				gkdClient.join(resourceName,(JoinRequest join)->mqttClient.publish(GKDServer.TOPIC_GKD+"/"+GKD_TYPE+"/"+GKDServer.TOPIC_JOIN,GKDServer.DEFAULT_QOS,Json.toJSON(join).getBytes()));
+				gkdClient.join(resourceName,(JoinRequest join)->mqttClient.publish(KeyServer.TOPIC_GKD+"/"+GKD_TYPE+"/"+KeyServer.TOPIC_JOIN,KeyServer.DEFAULT_QOS,Json.toJSON(join).getBytes()));
 				// TODO
 				
 				if (joinTimeout>0) {
@@ -211,7 +211,7 @@ public class SecureCoapServer extends CoapServer {
 		else {
 			if (VERBOSE) log("request(): group key not found: trying to join the group");
 			try {
-				gkdClient.join(resourceName,(JoinRequest join)->mqttClient.publish(GKDServer.TOPIC_GKD+"/"+GKD_TYPE+"/"+GKDServer.TOPIC_JOIN,GKDServer.DEFAULT_QOS,Json.toJSON(join).getBytes()));
+				gkdClient.join(resourceName,(JoinRequest join)->mqttClient.publish(KeyServer.TOPIC_GKD+"/"+GKD_TYPE+"/"+KeyServer.TOPIC_JOIN,KeyServer.DEFAULT_QOS,Json.toJSON(join).getBytes()));
 				// TODO
 				
 				if (joinTimeout>0) {

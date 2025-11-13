@@ -12,7 +12,7 @@ import org.zoolu.util.json.Json;
 import org.zoolu.util.log.DefaultLogger;
 import org.zoolu.util.log.LoggerLevel;
 
-import it.unipr.netsec.smqtt.gkd.GKDServer;
+import it.unipr.netsec.smqtt.gkd.KeyServer;
 import it.unipr.netsec.smqtt.gkd.GKDService;
 import it.unipr.netsec.smqtt.gkd.message.JoinRequest;
 import it.unipr.netsec.smqtt.gkd.message.JoinResponse;
@@ -53,10 +53,10 @@ public class SlottedGKDService implements GKDService {
 	 * @throws NoSuchAlgorithmException
 	 */
 	public SlottedGKDService() throws NoSuchAlgorithmException, UnsupportedEncodingException {
-		k2= Random.nextBytes(GKDServer.KEY_LENGTH);
+		k2= Random.nextBytes(KeyServer.KEY_LENGTH);
 
 		// root key
-		var k00= Random.nextBytes(GKDServer.KEY_LENGTH);
+		var k00= Random.nextBytes(KeyServer.KEY_LENGTH);
 		x00= new KeyNode(0,0,k00);
 		System.out.println("DEBUG: SlottedGKDService: x00: "+x00.toString());
 		

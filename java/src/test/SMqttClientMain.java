@@ -9,13 +9,13 @@ import org.zoolu.util.log.DefaultLogger;
 import org.zoolu.util.log.WriterLogger;
 
 import it.unipr.netsec.smqtt.SecureMqttClient;
-import it.unipr.netsec.smqtt.gkd.GKDServer;
+import it.unipr.netsec.smqtt.gkd.KeyServer;
 import it.unipr.netsec.smqtt.gkd.method.SlottedGKDClient;
 
 
 /** Simple SMQTT client.
  * <p>
- * It requires a standard MQTT broker and a GKD server.
+ * It requires a standard MQTT broker and a Key Server.
  * The addresses of the broker can be passed at command-line using the '-b' option.
  */
 public class SMqttClientMain {
@@ -41,8 +41,8 @@ public class SMqttClientMain {
 		var verbose= flags.getBoolean("-v","verbose mode");
 		var broker= flags.getString("-b",DEFAULT_BROKER,"broker","socket address of the MQTT broker");
 		var gkdType= flags.getInteger("-m",2,"method","group key distribution method (default is 2=update)"); // 1=static, 2=update, 3=slotted
-		var topic= flags.getString("-t","test","topic","topic name to join and subscribe (default is 'test')");
-		var expires= flags.getInteger("-x",-1,"secs","duration of the membership");
+		var topic= flags.getString("-g","test","topic","group/topic to join and subscribe (default is 'test')");
+		var expires= flags.getInteger("-t",-1,"secs","duration of the membership");
 		var help= flags.getBoolean("-h","shows this help and extits");
 
 		if (help) {
@@ -61,7 +61,7 @@ public class SMqttClientMain {
 		SecureMqttClient.GKD_TYPE= gkdType;
 				
 		var clientId= "client-"+(Random.nextInt(90000)+10000);
-		var Key= Random.nextBytes(GKDServer.KEY_LENGTH);
+		var Key= Random.nextBytes(KeyServer.KEY_LENGTH);
 		var client= new SecureMqttClient(clientId,Key,broker,null);
 		client.connect();	
 		SystemUtils.sleep(1000);	

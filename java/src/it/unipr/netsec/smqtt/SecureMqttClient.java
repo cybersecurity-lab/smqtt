@@ -8,7 +8,7 @@ import org.zoolu.util.log.DefaultLogger;
 import org.zoolu.util.log.LoggerLevel;
 
 import it.unipr.netsec.smqtt.gkd.GKDClient;
-import it.unipr.netsec.smqtt.gkd.GKDServer;
+import it.unipr.netsec.smqtt.gkd.KeyServer;
 import it.unipr.netsec.smqtt.gkd.message.AuthenticatedEncryption;
 import it.unipr.netsec.smqtt.gkd.message.JoinRequest;
 import it.unipr.netsec.smqtt.gkd.message.JoinResponse;
@@ -139,7 +139,7 @@ public class SecureMqttClient implements MqttClient {
 	 */
 	public void join(String group) throws IOException {
 		if (VERBOSE) log("join(): JOIN REQUEST: group="+group);
-		gkdClient.join(group,(JoinRequest join)->mqttClient.publish(GKDServer.TOPIC_GKD+"/"+GKD_TYPE+"/"+GKDServer.TOPIC_JOIN,GKDServer.DEFAULT_QOS,Json.toJSON(join).getBytes()));
+		gkdClient.join(group,(JoinRequest join)->mqttClient.publish(KeyServer.TOPIC_GKD+"/"+GKD_TYPE+"/"+KeyServer.TOPIC_JOIN,KeyServer.DEFAULT_QOS,Json.toJSON(join).getBytes()));
 	}
 
 	/** Joins a group for a given time.
@@ -149,7 +149,7 @@ public class SecureMqttClient implements MqttClient {
 	 */
 	public void join(String group, int expires) throws IOException {
 		if (VERBOSE) log("join(): JOIN REQUEST: group="+group+", expires="+expires+"s");
-		gkdClient.join(group,expires,(JoinRequest join)->mqttClient.publish(GKDServer.TOPIC_GKD+"/"+GKD_TYPE+"/"+GKDServer.TOPIC_JOIN,GKDServer.DEFAULT_QOS,Json.toJSON(join).getBytes()));
+		gkdClient.join(group,expires,(JoinRequest join)->mqttClient.publish(KeyServer.TOPIC_GKD+"/"+GKD_TYPE+"/"+KeyServer.TOPIC_JOIN,KeyServer.DEFAULT_QOS,Json.toJSON(join).getBytes()));
 	}
 
 	/**
@@ -161,7 +161,7 @@ public class SecureMqttClient implements MqttClient {
 			if (DEBUG) log("processReceivedMessage(): topic="+topic+", len="+payload.length);
 			//if (DEBUG) log("processReceivedMessage(): topic="+topic+", len="+payload.length+", payload="+Bytes.toHex(payload));
 			var topicPath= topic.split("/");
-			if (topicPath[0].equals(GKDServer.TOPIC_GKD)) {
+			if (topicPath[0].equals(KeyServer.TOPIC_GKD)) {
 				if (!topicPath[1].equals(String.valueOf(GKD_TYPE))) throw new IOException("Wrong GKD type: "+topicPath[1]);
 				if (!topicPath[2].equals(clientId)) throw new IOException("Wrong client id: "+topicPath[2]);
 				// else
@@ -174,6 +174,7 @@ public class SecureMqttClient implements MqttClient {
 			else {
 				var index= Bytes.toInt16(payload);
 				payload= Bytes.copy(payload,2,payload.length-2);
+				if (DEBUG||VERBOSE) log("processReceivedMessage(): getGroupKey(): "+topic+","+index);
 				var groupKey= gkdClient.getGroupKey(topic,index);
 				if (groupKey==null) {
 					if (DEBUG||VERBOSE) log("processReceivedMessage(): No valid group key found: message discarded");
@@ -201,7 +202,7 @@ public class SecureMqttClient implements MqttClient {
 	@Override
 	public void connect() throws IOException {
 		mqttClient.connect();
-		mqttClient.subscribe(GKDServer.TOPIC_GKD+"/+/"+clientId,GKDServer.DEFAULT_QOS);
+		mqttClient.subscribe(KeyServer.TOPIC_GKD+"/+/"+clientId,KeyServer.DEFAULT_QOS);
 	}
 
 	@Override
@@ -223,6 +224,7 @@ public class SecureMqttClient implements MqttClient {
 	public void publish(String topic, int qos, byte[] payload) throws IOException {
 		if (DEBUG||VERBOSE) log("publish(): topic="+topic+", msg: "+(Bytes.isAscii(payload)? "'"+new String(payload)+"'"  : Bytes.toHex(payload)));
 		var indexKeyPair= gkdClient.getGroupKey(topic);
+		if (DEBUG||VERBOSE) log("publish(): getGroupKey(): "+topic+","+indexKeyPair.index);
 		if (indexKeyPair==null) {
 			if (DEBUG||VERBOSE) log("publish(): No valid group key found: publishing failed");
 			return;

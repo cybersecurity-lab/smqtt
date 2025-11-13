@@ -7,17 +7,17 @@ import org.zoolu.util.SystemUtils;
 import org.zoolu.util.log.DefaultLogger;
 import org.zoolu.util.log.WriterLogger;
 
-import it.unipr.netsec.smqtt.gkd.GKDServer;
+import it.unipr.netsec.smqtt.gkd.KeyServer;
 import it.unipr.netsec.smqtt.gkd.method.SlottedGKDService;
 
 
-/** GKD server.
+/** Key Server (KS).
  * <p>
  * It requires a standard MQTT broker.
  * The address of the broker can be passed at command-line using the '-b' option.
  */
-public class GKDServerMain {
-	private GKDServerMain() {}
+public class KeyServerMain {
+	private KeyServerMain() {}
 
 	/** Default MQTT broker */
 	private static String DEFAULT_BROKER= "127.0.0.1:1883";
@@ -36,13 +36,13 @@ public class GKDServerMain {
 		var help= flags.getBoolean("-h","shows this help and extits");
 
 		if (help) {
-			System.out.println(flags.toUsageString(GKDServerMain.class));
+			System.out.println(flags.toUsageString(KeyServerMain.class));
 			return;
 		}
 		
 		if (verbose) {
 			DefaultLogger.setLogger(new WriterLogger(System.out));
-			GKDServer.VERBOSE= true;
+			KeyServer.VERBOSE= true;
 			SlottedGKDService.VERBOSE= true;
 		}
 		
@@ -54,16 +54,14 @@ public class GKDServerMain {
 		System.out.println("Number of slots: "+slotNum);
 		var maxTime= slotNum*slot;
 		System.out.println("Maximum time: "+(maxTime<60? maxTime+"s" : maxTime<3600? maxTime/60+"min" : maxTime<(3600*24)? maxTime/3600+"h" :  maxTime/3600/24+" days"));
-
-		
+	
 		if (prompt) SystemUtils.run(()->{
 			System.out.println("Press 'ENTER' to exit");
 			System.in.read();
 			System.exit(0);
 		});
-
 		
-		new GKDServer("server",broker);
+		new KeyServer("server",broker);
 	}
 
 }
