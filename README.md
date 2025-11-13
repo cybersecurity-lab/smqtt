@@ -16,7 +16,8 @@ For MQTT communications the Eclipse Paho library has been used.
 
 ## Simple test
 
-This implementation can be easily tested also by launching the test.SMqttTest program that runs a Key Server and n SMQTT clients. One of the three GKD methods can be selected (default is 2=update).
+This implementation can be easily tested by launching the test.SMqttTest program on a JVM for Java 10 (or greater). 
+The program runs a Key Server and n SMQTT clients. One of the three GKD methods can be selected (default is 2=update).
 By default it expects a standard MQTT broker locally running at 127.0.0.1:1883, however the broker address can be explcitely configured using the ‘-b’ option.
 
 To run the test, open a terminal and execute the following command:
@@ -46,7 +47,7 @@ In order to manage possible big numbers of time slots and corresponding keys, a 
 
 All commuications for group key distribution are performed using MQTT. A specific key distribution protocol have been defined for this purpose.
 
-The Key Server can be run on a Java 10+ JVM. It just requires a standard MQTT (e.g. Eclipse mosquitto) running and reachable at a given IP address:
+The Key Server just requires a standard MQTT (e.g. Eclipse mosquitto) running and reachable at a given IP address and can be run with the following command:
 ``` bash
 java -cp "java/lib/*" test.KeyServerMain -v
 ```
