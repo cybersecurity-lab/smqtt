@@ -58,7 +58,7 @@ public class SlottedGKDService implements GKDService {
 		// root key
 		var k00= Random.nextBytes(KeyServer.KEY_LENGTH);
 		x00= new KeyNode(0,0,k00);
-		System.out.println("DEBUG: SlottedGKDService: x00: "+x00.toString());
+		if (VERBOSE) log("SlottedGKDService(): x00: "+x00.toString());
 		
 		// BEGIN DEBUG
 		//System.out.println("DEBUG: SlottedGKDService: k2: "+Bytes.toHex(k2));
@@ -73,7 +73,7 @@ public class SlottedGKDService implements GKDService {
 	
 	@Override
 	public void handleJoinRequest(JoinRequest joinReq, Consumer<JoinResponse> sender) {
-		if (VERBOSE) log("handleJoinRequest(): "+Json.toJSON(joinReq));
+		if (VERBOSE) log("handleJoinRequest(): "+joinReq.toJson());
 
 		if (joinReq.expires<0) joinReq.expires=0;
 		var elapsedTime= System.currentTimeMillis()-startT;		

@@ -19,7 +19,7 @@ import io.ipstack.mqtt.PahoClient;
 
 
 /**
- * Key Server (KS) providing group key distribution function (aka GKDC).
+ * Key Server (KS) providing group key distribution function (acting as GKDC).
  * <p>
  * Three different group key distribution methods are currently supported:
  * <ul>
@@ -156,7 +156,7 @@ public class KeyServer {
 				gkdService.handleJoinRequest(joinReq, (JoinResponse joinResp)->{
 					try {
 						if (KeyServer.DEBUG||KeyServer.VERBOSE) log("processReceivedMessage(): send key material to '"+joinResp.member+"' for group '"+joinResp.group+"': "+joinResp.key);
-						mqttClient.publish(TOPIC_GKD+"/"+type+"/"+joinResp.member,DEFAULT_QOS,Json.toJSON(joinResp).getBytes());
+						mqttClient.publish(TOPIC_GKD+"/"+type+"/"+joinResp.member,DEFAULT_QOS,joinResp.toJson().getBytes());
 					}
 					catch (IOException e) {
 						e.printStackTrace();

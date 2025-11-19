@@ -28,7 +28,7 @@ public class SMqttTest {
 	private static String DEFAULT_BROKER= "127.0.0.1:1883";
 
 	/** Default GKD method type (current values: 1=static, 2=update, 3=slotted) */
-	private static int DEFAULT_GKD_TYPE= 3; // 1=static, 2=update, 3=slotted
+	private static int DEFAULT_GKD_TYPE= 2; // 1=static, 2=update, 3=slotted
 	
 	/** Number of SMQTT clients */
 	private static int NUM_CLIENTS= 3;
@@ -66,7 +66,7 @@ public class SMqttTest {
 		var client= new SecureMqttClient(id,key,broker,null);
 		client.connect();
 		SystemUtils.sleep(joinDelay);
-		if (TREE_DEPTH>0) {
+		if (SecureMqttClient.GKD_TYPE==3) {
 			var expires= (int)((1<<TREE_DEPTH)*TIMESLOT);
 			client.join("test",expires);
 		}

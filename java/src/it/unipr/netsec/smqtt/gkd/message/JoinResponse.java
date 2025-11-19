@@ -1,5 +1,10 @@
 package it.unipr.netsec.smqtt.gkd.message;
 
+import java.util.HashSet;
+
+import org.zoolu.util.ArrayUtils;
+import org.zoolu.util.json.Json;
+import org.zoolu.util.json.ObjectInspector;
 
 public class JoinResponse {
 	
@@ -43,6 +48,19 @@ public class JoinResponse {
 		this.depth= depth;
 		this.time= time;
 		this.key= key;
+	}
+	
+	/** 
+	 * @return returns a JSON without empty or invalid fields
+	 */
+	public String toJson() {
+		var attributes= new HashSet<String>();
+		for (var a: ObjectInspector.getObjectAttributes(this,false)) attributes.add(a.name);
+		if (expires<0) if (!attributes.remove("expires")) throw new RuntimeException("Attribute 'expires' doesn't exist");
+		if (slot<0) if (!attributes.remove("slot")) throw new RuntimeException("Attribute 'slot' doesn't exist");
+		if (depth<0) if (!attributes.remove("depth")) throw new RuntimeException("Attribute 'depth' doesn't exist");
+		if (time<0) if (!attributes.remove("time")) throw new RuntimeException("Attribute 'time' doesn't exist");
+		return Json.toJSON(this,attributes);
 	}
 
 }

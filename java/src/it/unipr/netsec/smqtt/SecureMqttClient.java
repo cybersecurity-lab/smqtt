@@ -139,7 +139,7 @@ public class SecureMqttClient implements MqttClient {
 	 */
 	public void join(String group) throws IOException {
 		if (VERBOSE) log("join(): JOIN REQUEST: group="+group);
-		gkdClient.join(group,(JoinRequest join)->mqttClient.publish(KeyServer.TOPIC_GKD+"/"+GKD_TYPE+"/"+KeyServer.TOPIC_JOIN,KeyServer.DEFAULT_QOS,Json.toJSON(join).getBytes()));
+		gkdClient.join(group,(JoinRequest join)->mqttClient.publish(KeyServer.TOPIC_GKD+"/"+GKD_TYPE+"/"+KeyServer.TOPIC_JOIN,KeyServer.DEFAULT_QOS,join.toJson().getBytes()));
 	}
 
 	/** Joins a group for a given time.
@@ -148,8 +148,8 @@ public class SecureMqttClient implements MqttClient {
 	 * @throws IOException
 	 */
 	public void join(String group, int expires) throws IOException {
-		if (VERBOSE) log("join(): JOIN REQUEST: group="+group+", expires="+expires+"s");
-		gkdClient.join(group,expires,(JoinRequest join)->mqttClient.publish(KeyServer.TOPIC_GKD+"/"+GKD_TYPE+"/"+KeyServer.TOPIC_JOIN,KeyServer.DEFAULT_QOS,Json.toJSON(join).getBytes()));
+		if (VERBOSE) log("join(): JOIN REQUEST: group="+group+", expires="+expires);
+		gkdClient.join(group,expires,(JoinRequest join)->mqttClient.publish(KeyServer.TOPIC_GKD+"/"+GKD_TYPE+"/"+KeyServer.TOPIC_JOIN,KeyServer.DEFAULT_QOS,join.toJson().getBytes()));
 	}
 
 	/**
@@ -168,7 +168,7 @@ public class SecureMqttClient implements MqttClient {
 				var body= new String(payload);
 				var joinResp= Json.fromJSON(body,JoinResponse.class);
 				//if (DEBUG||VERBOSE) log("processReceivedMessage(): JOIN RESPONSE: group="+joinResp.group+", expires="+joinResp.expires+"s, key-material="+joinResp.key);
-				if (DEBUG||VERBOSE) log("processReceivedMessage(): JOIN RESPONSE: "+Json.toJSON(joinResp));
+				if (DEBUG||VERBOSE) log("processReceivedMessage(): JOIN RESPONSE: "+joinResp.toJson());
 				gkdClient.handleJoinResponse(joinResp);					
 			}
 			else {
