@@ -7,7 +7,6 @@ import java.security.NoSuchAlgorithmException;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.Mac;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
@@ -16,25 +15,17 @@ import javax.crypto.spec.SecretKeySpec;
 import org.zoolu.util.Bytes;
 import org.zoolu.util.Random;
 
-public class AuthenticatedEncryption {
+public class Encryption {
 	
 	public static String ALGO= "AES";
 
 	public static String MODE= "CBC";
 	
 	public static String PADDING= "PKCS5Padding";
-			
-	public static String MAC_ALGO= "HmacSHA256";
-
-	public static int AUTH_LEN= 16;
-
+	
 	private SecretKey secretKey;
 	
 	private Cipher cipher;
-	
-	private SecretKey macKey;
-
-	private Mac mac;
 	
 	
 	/** Creates a new instance of the cipher.
@@ -44,13 +35,17 @@ public class AuthenticatedEncryption {
 	 * @throws InvalidKeyException
 	 * @throws InvalidAlgorithmParameterException
 	 */
-	public AuthenticatedEncryption(byte[] key) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException {
+	public Encryption(byte[] key) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException {
 		// cipher
 		cipher= Cipher.getInstance(ALGO+"/"+MODE+"/"+PADDING);
 		secretKey= new SecretKeySpec(key,ALGO);
-		// MAC
-		mac= Mac.getInstance(MAC_ALGO);
-		macKey= new SecretKeySpec(key,MAC_ALGO);
+	}
+	
+	
+	public synchronized byte[] encrypt(byte[] plaintext, byte[] iv) throws InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException {
+		var ivParam= MODE.equalsIgnoreCase("EBC")? null : new IvParameterSpec(iv);
+		cipher.init(Cipher.ENCRYPT_MODE,secretKey,ivParam);
+		return cipher.doFinal(plaintext);
 	}
 	
 	
@@ -59,22 +54,21 @@ public class AuthenticatedEncryption {
 		var ivParam= iv!=null? new IvParameterSpec(iv) : null;
 		cipher.init(Cipher.ENCRYPT_MODE,secretKey,ivParam);
 		byte[] ciphertext= cipher.doFinal(plaintext);
-		mac.init(macKey);
-		byte[] auth= mac.doFinal(plaintext);
-		if (auth.length>AUTH_LEN) auth= Bytes.copy(auth,0,AUTH_LEN);
-		return iv!=null? Bytes.concat(iv,ciphertext,auth) : Bytes.concat(ciphertext,auth);
+		return iv!=null? Bytes.concat(iv,ciphertext) : ciphertext;
 	}
 	
 	
+	public synchronized byte[] decrypt(byte[] ciphertext, byte[] iv) throws InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException {
+		var ivParam= MODE.equalsIgnoreCase("EBC")? null : new IvParameterSpec(iv);
+		cipher.init(Cipher.DECRYPT_MODE,secretKey,ivParam);
+		return cipher.doFinal(ciphertext);
+	}
+
 	public synchronized byte[] decrypt(byte[] ciphertext) throws InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException {
 		int blockSize= cipher.getBlockSize();
-		var ivParam= MODE.equalsIgnoreCase("EBC")? null : new IvParameterSpec(Bytes.copy(ciphertext,0,blockSize));
-		cipher.init(Cipher.DECRYPT_MODE,secretKey,ivParam);
-		byte[] plaintext= cipher.doFinal(ciphertext, ivParam==null? 0 : blockSize, ivParam==null? ciphertext.length-AUTH_LEN : ciphertext.length-blockSize-AUTH_LEN);
-		mac.init(macKey);
-		byte[] auth= mac.doFinal(plaintext);
-		boolean success= Bytes.compare(ciphertext,ciphertext.length-AUTH_LEN,AUTH_LEN,auth,0,AUTH_LEN)==0;
-		if (!success) throw new SecurityException("MAC verification failed: message may have been tampered with or the key is incorrect.");
+		IvParameterSpec iv= (MODE.equalsIgnoreCase("EBC"))? null : new IvParameterSpec(Bytes.copy(ciphertext,0,blockSize));
+		cipher.init(Cipher.DECRYPT_MODE,secretKey,iv);
+		byte[] plaintext= cipher.doFinal(ciphertext, iv==null? 0 : blockSize, iv==null? ciphertext.length : ciphertext.length-blockSize);
 		return plaintext;
 	}
 

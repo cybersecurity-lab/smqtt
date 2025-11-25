@@ -1,6 +1,13 @@
 package it.unipr.netsec.smqtt;
 
 import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
 import org.zoolu.util.Bytes;
 import org.zoolu.util.json.Json;
@@ -139,7 +146,10 @@ public class SecureMqttClient implements MqttClient {
 	 */
 	public void join(String group) throws IOException {
 		if (VERBOSE) log("join(): JOIN REQUEST: group="+group);
-		gkdClient.join(group,(JoinRequest join)->mqttClient.publish(KeyServer.TOPIC_GKD+"/"+GKD_TYPE+"/"+KeyServer.TOPIC_JOIN,KeyServer.DEFAULT_QOS,join.toJson().getBytes()));
+		gkdClient.join(group,(JoinRequest join)->{
+			if (DEBUG||VERBOSE) log("join(): JOIN REQUEST: send: "+join.toJson());
+			mqttClient.publish(KeyServer.TOPIC_GKD+"/"+GKD_TYPE+"/"+KeyServer.TOPIC_JOIN,KeyServer.DEFAULT_QOS,join.toJson().getBytes());
+		});
 	}
 
 	/** Joins a group for a given time.
@@ -149,7 +159,10 @@ public class SecureMqttClient implements MqttClient {
 	 */
 	public void join(String group, int expires) throws IOException {
 		if (VERBOSE) log("join(): JOIN REQUEST: group="+group+", expires="+expires);
-		gkdClient.join(group,expires,(JoinRequest join)->mqttClient.publish(KeyServer.TOPIC_GKD+"/"+GKD_TYPE+"/"+KeyServer.TOPIC_JOIN,KeyServer.DEFAULT_QOS,join.toJson().getBytes()));
+		gkdClient.join(group,expires,(JoinRequest join)->{
+			if (DEBUG||VERBOSE) log("join(): JOIN REQUEST: send: "+join.toJson());
+			mqttClient.publish(KeyServer.TOPIC_GKD+"/"+GKD_TYPE+"/"+KeyServer.TOPIC_JOIN,KeyServer.DEFAULT_QOS,join.toJson().getBytes());
+		});
 	}
 
 	/**
@@ -167,14 +180,16 @@ public class SecureMqttClient implements MqttClient {
 				// else
 				var body= new String(payload);
 				var joinResp= Json.fromJSON(body,JoinResponse.class);
+				joinResp.verify(clientKey);
 				//if (DEBUG||VERBOSE) log("processReceivedMessage(): JOIN RESPONSE: group="+joinResp.group+", expires="+joinResp.expires+"s, key-material="+joinResp.key);
 				if (DEBUG||VERBOSE) log("processReceivedMessage(): JOIN RESPONSE: "+joinResp.toJson());
+				if (DEBUG||VERBOSE) log("processReceivedMessage(): JOIN RESPONSE: key material: "+joinResp.getKeyMaterial(clientKey));
 				gkdClient.handleJoinResponse(joinResp);					
 			}
 			else {
 				var index= Bytes.toInt16(payload);
 				payload= Bytes.copy(payload,2,payload.length-2);
-				if (DEBUG||VERBOSE) log("processReceivedMessage(): getGroupKey(): "+topic+","+index);
+				//if (DEBUG||VERBOSE) log("processReceivedMessage(): getGroupKey(): "+topic+","+index);
 				var groupKey= gkdClient.getGroupKey(topic,index);
 				if (groupKey==null) {
 					if (DEBUG||VERBOSE) log("processReceivedMessage(): No valid group key found: message discarded");
@@ -182,16 +197,15 @@ public class SecureMqttClient implements MqttClient {
 				}
 				// else
 				if (DEBUG) log("processReceivedMessage(): group key: "+Bytes.toHex(groupKey));
-				var cipher= new AuthenticatedEncryption(groupKey);
-				byte[] plaintext;
 				try {
-					plaintext= cipher.decrypt(payload);
+					var cipher= new AuthenticatedEncryption(groupKey);
+					var plaintext= cipher.decrypt(payload);
+					if (DEBUG||VERBOSE) log("processReceivedMessage(): msg: "+(Bytes.isAscii(plaintext)? "'"+new String(plaintext)+"'" : Bytes.toHex(plaintext)));
+					if (listener!=null) listener.onMessageArrived(this,topic,qos,plaintext);
 				}
 				catch (Exception e) {
 					throw new IOException("SecureMqttClient("+clientId+"): processReceivedMessage(): Decryption error: possible wrong group key: "+Bytes.toHex(groupKey),e);
 				}
-				if (DEBUG||VERBOSE) log("processReceivedMessage(): msg: "+(Bytes.isAscii(plaintext)? "'"+new String(plaintext)+"'" : Bytes.toHex(plaintext)));
-				if (listener!=null) listener.onMessageArrived(this,topic,qos,plaintext);
 			}
 		}
 		catch (Exception e) {
@@ -231,9 +245,10 @@ public class SecureMqttClient implements MqttClient {
 		}
 		if (DEBUG) log("publish(): group key: "+Bytes.toHex(indexKeyPair.key));
 		try {
-			var cipher= new AuthenticatedEncryption(indexKeyPair.key);
-			byte[] ciphertext= cipher.encrypt(payload);
-			mqttClient.publish(topic,qos,Bytes.concat(Bytes.fromInt16(indexKeyPair.index),ciphertext));
+			//var cipher= new AuthenticatedEncryption(indexKeyPair.key);
+			//byte[] ciphertext= cipher.encrypt(payload);
+			//mqttClient.publish(topic,qos,Bytes.concat(Bytes.fromInt16(indexKeyPair.index),ciphertext));
+			securePublish(topic,qos,indexKeyPair.key,indexKeyPair.index,payload);
 		}
 		catch (Exception e) {
 			throw new IOException(e);
@@ -244,6 +259,12 @@ public class SecureMqttClient implements MqttClient {
 	public void subscribe(String topicName, int qos) throws IOException {
 		mqttClient.subscribe(topicName,qos);
 		
+	}
+	
+	private void securePublish(String topic, int qos, byte[] key, int index, byte[] payload) throws IOException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException {
+		var cipher= new AuthenticatedEncryption(key);
+		byte[] ciphertext= cipher.encrypt(payload);
+		mqttClient.publish(topic,qos,Bytes.concat(Bytes.fromInt16(index),ciphertext));
 	}
 
 }

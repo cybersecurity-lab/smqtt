@@ -43,7 +43,6 @@ public class KeyServerMain {
 		if (verbose) {
 			DefaultLogger.setLogger(new WriterLogger(System.out));
 			KeyServer.VERBOSE= true;
-			SlottedGKDService.VERBOSE= true;
 		}
 		
 		SlottedGKDService.TIMESLOT= slot;

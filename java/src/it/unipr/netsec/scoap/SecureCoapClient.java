@@ -15,6 +15,7 @@ import org.zoolu.util.log.LoggerLevel;
 import it.unipr.netsec.smqtt.gkd.GKDClient;
 import it.unipr.netsec.smqtt.gkd.KeyServer;
 import it.unipr.netsec.smqtt.gkd.IndexKeyPair;
+import it.unipr.netsec.smqtt.gkd.KeyRing;
 import it.unipr.netsec.smqtt.gkd.message.AuthenticatedEncryption;
 import it.unipr.netsec.smqtt.gkd.message.JoinRequest;
 import it.unipr.netsec.smqtt.gkd.message.JoinResponse;
@@ -82,6 +83,7 @@ public class SecureCoapClient extends CoapClient {
 	
 	private void initGKD(String clientId, byte[] clientKey, String broker, String username, String passwd) throws IOException {
 		this.clientId= clientId;
+		this.clientKey= clientKey;
 		mqttClient= new PahoClient(clientId,"tcp://"+broker,username,passwd,new MqttClientListener() {
 
 			@Override
@@ -129,7 +131,7 @@ public class SecureCoapClient extends CoapClient {
 				// else
 				var body= new String(payload);
 				joinResp= Json.fromJSON(body,JoinResponse.class);
-				if (VERBOSE) log("processReceivedMessage(): JOIN RESPONSE: group="+joinResp.group+", expires="+joinResp.expires+"s, key-material="+joinResp.key);
+				if (VERBOSE) log("processReceivedMessage(): JOIN RESPONSE: group="+joinResp.group+", expires="+joinResp.expires+"s, key-material="+joinResp.getKeyMaterial(clientKey));
 				synchronized (mqttClient) {
 					mqttClient.notifyAll();					
 				}
@@ -138,7 +140,7 @@ public class SecureCoapClient extends CoapClient {
 				if (VERBOSE) log("processReceivedMessage(): unknown topic '+topic+': message discarded");
 			}
 		}
-		catch (Exception e) {
+		catch (IOException e) {
 			e.printStackTrace();
 		}
 	}

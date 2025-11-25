@@ -4,7 +4,10 @@ import java.io.IOException;
 import java.util.HashMap;
 
 import org.zoolu.util.Bytes;
+import org.zoolu.util.log.DefaultLogger;
+import org.zoolu.util.log.LoggerLevel;
 
+import it.unipr.netsec.smqtt.SecureMqttClient;
 import it.unipr.netsec.smqtt.gkd.GKDClient;
 import it.unipr.netsec.smqtt.gkd.IndexKeyPair;
 import it.unipr.netsec.smqtt.gkd.ThrowingConsumer;
@@ -13,29 +16,37 @@ import it.unipr.netsec.smqtt.gkd.message.JoinResponse;
 
 
 public class StaticGKDClient implements GKDClient {
+	
+	private void log(String str) {
+		DefaultLogger.log(LoggerLevel.INFO,this.getClass(),str);
+	}
 
+	
 	/** Client identifier */
 	String clientId;
 
-	/** Client secret key */
-	byte[] secretKey;
+	/** Client long-term secret key */
+	byte[] clientKey;
 	
+	/** Sequence number */
+	private long seq= 0;
+
 	/** Group keys */
 	HashMap<String,byte[]> groupKeys= new HashMap<>();
 
 	
 	/** Create a new GKDClient.
 	 * @param clientId client identifier
-	 * @param secretKey client secret key
+	 * @param secretKey client long-term secret key
 	 */
-	public StaticGKDClient(String clientId, byte[] secretKey) {
+	public StaticGKDClient(String clientId, byte[] clientKey) {
 		this.clientId= clientId;
-		this.secretKey= secretKey;
+		this.clientKey= clientKey;
 	}
 
 	@Override
 	public void join(String group, ThrowingConsumer<JoinRequest> sender) throws IOException {
-		var join= new JoinRequest(clientId,group);
+		var join= new JoinRequest(clientId,group,seq,clientKey);
 		sender.accept(join);
 	}
 
@@ -63,7 +74,17 @@ public class StaticGKDClient implements GKDClient {
 
 	@Override
 	public void handleJoinResponse(JoinResponse resp) {
-		groupKeys.put(resp.group,Bytes.fromHex(resp.key));
+		if (resp.seq<seq) {
+			if (SecureMqttClient.DEBUG) log("handleJoinResponse(): seq "+resp.seq+" < "+seq+": message is old, discarded");
+			return;
+		}
+		seq= resp.seq+1;
+		try {
+			groupKeys.put(resp.group,Bytes.fromHex(resp.getKeyMaterial(clientKey)));
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 }

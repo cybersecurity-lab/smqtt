@@ -2,6 +2,7 @@ package test;
 
 import java.io.IOException;
 
+import org.zoolu.util.Bytes;
 import org.zoolu.util.Flags;
 import org.zoolu.util.Random;
 import org.zoolu.util.SystemUtils;
@@ -9,6 +10,7 @@ import org.zoolu.util.log.DefaultLogger;
 import org.zoolu.util.log.WriterLogger;
 
 import it.unipr.netsec.smqtt.SecureMqttClient;
+import it.unipr.netsec.smqtt.gkd.KeyRing;
 import it.unipr.netsec.smqtt.gkd.KeyServer;
 import it.unipr.netsec.smqtt.gkd.method.SlottedGKDClient;
 
@@ -43,6 +45,7 @@ public class SMqttClientMain {
 		var gkdType= flags.getInteger("-m",2,"method","group key distribution method (default is 2=update)"); // 1=static, 2=update, 3=slotted
 		var topic= flags.getString("-g","test","topic","group/topic to join and subscribe (default is 'test')");
 		var expires= flags.getInteger("-t",-1,"secs","duration of the membership");
+		var key= flags.getString("-k",Bytes.toHex(KeyRing.DEFAULT_KEY),"key","client long-term secret key (default is "+Bytes.toHex(KeyRing.DEFAULT_KEY)+")");
 		var help= flags.getBoolean("-h","shows this help and extits");
 
 		if (help) {
@@ -55,14 +58,12 @@ public class SMqttClientMain {
 			//PahoClient.VERBOSE= true;
 			SecureMqttClient.VERBOSE= true;
 			if (veryVerbose) SecureMqttClient.DEBUG= true;
-			SlottedGKDClient.VERBOSE= true;
 		}
 		
 		SecureMqttClient.GKD_TYPE= gkdType;
 				
 		var clientId= "client-"+(Random.nextInt(90000)+10000);
-		var Key= Random.nextBytes(KeyServer.KEY_LENGTH);
-		var client= new SecureMqttClient(clientId,Key,broker,null);
+		var client= new SecureMqttClient(clientId,Bytes.fromHex(key),broker,null);
 		client.connect();	
 		SystemUtils.sleep(1000);	
 		if (expires>0) SystemUtils.runAfter(expires*1000,()->System.exit(0));

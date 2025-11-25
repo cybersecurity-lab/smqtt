@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 
+import org.zoolu.util.Bytes;
 import org.zoolu.util.json.Json;
 import org.zoolu.util.log.DefaultLogger;
 import org.zoolu.util.log.LoggerLevel;
@@ -19,7 +20,7 @@ import io.ipstack.mqtt.PahoClient;
 
 
 /**
- * Key Server (KS) providing group key distribution function (acting as GKDC).
+ * Key Server (KS) providing group key distribution function.
  * <p>
  * Three different group key distribution methods are currently supported:
  * <ul>
@@ -53,14 +54,14 @@ public class KeyServer {
 		DefaultLogger.log(LoggerLevel.INFO,this.getClass(),str);
 	}
 
-
+	
 	public static String TOPIC_GKD= "gkd";
 	public static String TOPIC_JOIN= "join";
 	public static String TOPIC_LEAVE= "leave";
 	public static int DEFAULT_QOS= 2;
 	
 	public static int KEY_LENGTH= 16; // 128 bits
-
+	
 	private StaticGKDService gkdService1= null; // type 1
 	private UpdateGKDService gkdService2= null; // type 2
 	private SlottedGKDService gkdService3= null; // type 3
@@ -153,9 +154,19 @@ public class KeyServer {
 			}
 			if (topicFields[2].equals(TOPIC_JOIN)) {
 				var joinReq= Json.fromJSON(body,JoinRequest.class);
+				var clientKey= KeyRing.getKey(joinReq.member);
+				if (clientKey==null) {
+					if (VERBOSE) log("processReceivedMessage(): unknown client '"+joinReq.member+"': request discarded");
+					return;
+				}			
+				joinReq.verify(clientKey);
+				// TODO
+				// check authorization
+				
 				gkdService.handleJoinRequest(joinReq, (JoinResponse joinResp)->{
 					try {
-						if (KeyServer.DEBUG||KeyServer.VERBOSE) log("processReceivedMessage(): send key material to '"+joinResp.member+"' for group '"+joinResp.group+"': "+joinResp.key);
+						if (KeyServer.DEBUG||KeyServer.VERBOSE) log("processReceivedMessage(): send key material to '"+joinResp.member+"' for group '"+joinResp.group+"': "+joinResp.getKeyMaterial(clientKey));
+						if (KeyServer.DEBUG||KeyServer.VERBOSE) log("processReceivedMessage(): send: "+joinResp.toJson());
 						mqttClient.publish(TOPIC_GKD+"/"+type+"/"+joinResp.member,DEFAULT_QOS,joinResp.toJson().getBytes());
 					}
 					catch (IOException e) {

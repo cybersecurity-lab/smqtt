@@ -4,7 +4,10 @@ import java.io.IOException;
 import java.util.HashMap;
 
 import org.zoolu.util.Bytes;
+import org.zoolu.util.log.DefaultLogger;
+import org.zoolu.util.log.LoggerLevel;
 
+import it.unipr.netsec.smqtt.SecureMqttClient;
 import it.unipr.netsec.smqtt.gkd.GKDClient;
 import it.unipr.netsec.smqtt.gkd.IndexKeyPair;
 import it.unipr.netsec.smqtt.gkd.ThrowingConsumer;
@@ -13,20 +16,28 @@ import it.unipr.netsec.smqtt.gkd.message.JoinResponse;
 
 
 public class UpdateGKDClient implements GKDClient {
+	
+	private void log(String str) {
+		DefaultLogger.log(LoggerLevel.INFO,this.getClass(),str);
+	}
 
+	
 	/** Client identifier */
 	String clientId;
 
-	/** Client secret key */
+	/** Client long-term secret key */
 	byte[] secretKey;
 	
+	/** Sequence number */
+	private long seq= 0;
+
 	/** Group keys */
 	HashMap<String,byte[]> groupKeys= new HashMap<>();
 
 	
 	/** Create a new GKDClient.
 	 * @param clientId client identifier
-	 * @param secretKey client secret key
+	 * @param secretKey client long-term secret key
 	 */
 	public UpdateGKDClient(String clientId, byte[] secretKey) {
 		this.clientId= clientId;
@@ -35,7 +46,7 @@ public class UpdateGKDClient implements GKDClient {
 
 	@Override
 	public void join(String group, ThrowingConsumer<JoinRequest> sender) throws IOException {
-		var join= new JoinRequest(clientId,group);
+		var join= new JoinRequest(clientId,group,seq,secretKey);
 		sender.accept(join);
 	}
 
@@ -63,7 +74,19 @@ public class UpdateGKDClient implements GKDClient {
 
 	@Override
 	public void handleJoinResponse(JoinResponse resp) {
-		groupKeys.put(resp.group,Bytes.fromHex(resp.key));
+		if (resp.seq<seq) {
+			if (SecureMqttClient.DEBUG) log("handleJoinResponse(): seq "+resp.seq+" < "+seq+": message is old, discarded");
+			return;
+		}
+		seq= resp.seq+1;
+		try {
+			var hexKey= resp.getKeyMaterial(secretKey);
+			if (SecureMqttClient.DEBUG) log("handleJoinResponse(): updated group key: "+hexKey);
+			groupKeys.put(resp.group,Bytes.fromHex(hexKey));
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 }

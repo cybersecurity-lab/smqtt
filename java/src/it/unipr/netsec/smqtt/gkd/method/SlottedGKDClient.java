@@ -10,6 +10,7 @@ import org.zoolu.util.Range;
 import org.zoolu.util.log.DefaultLogger;
 import org.zoolu.util.log.LoggerLevel;
 
+import it.unipr.netsec.smqtt.SecureMqttClient;
 import it.unipr.netsec.smqtt.gkd.GKDClient;
 import it.unipr.netsec.smqtt.gkd.IndexKeyPair;
 import it.unipr.netsec.smqtt.gkd.ThrowingConsumer;
@@ -20,9 +21,6 @@ import it.unipr.netsec.smqtt.gkd.method.keytree.KeyNode;
 
 public class SlottedGKDClient implements GKDClient {
 	
-	/** Verbose mode */
-	public static boolean VERBOSE= false;
-
 	private void log(String str) {
 		DefaultLogger.log(LoggerLevel.INFO,this.getClass(),str);
 	}
@@ -32,8 +30,11 @@ public class SlottedGKDClient implements GKDClient {
 	String clientId;
 
 	/** Client secret key */
-	byte[] secretKey;
-	
+	byte[] clientKey;
+
+	/** Sequence number */
+	private long seq= 0;
+
 	/** Start time [ms] */
 	private long startT;
 
@@ -49,11 +50,11 @@ public class SlottedGKDClient implements GKDClient {
 	
 	/** Create a new GKDClient.
 	 * @param clientId client identifier
-	 * @param secretKey client secret key
+	 * @param secretKey client long-term secret key
 	 */
-	public SlottedGKDClient(String clientId, byte[] secretKey) {
+	public SlottedGKDClient(String clientId, byte[] clientKey) {
 		this.clientId= clientId;
-		this.secretKey= secretKey;
+		this.clientKey= clientKey;
 	}
 
 	@Override
@@ -64,7 +65,7 @@ public class SlottedGKDClient implements GKDClient {
 
 	@Override
 	public void join(String group, int expires, ThrowingConsumer<JoinRequest> sender) throws IOException {
-		var join= new JoinRequest(clientId,group,expires);
+		var join= new JoinRequest(clientId,group,expires,seq,clientKey);
 		sender.accept(join);
 	}
 	
@@ -95,19 +96,29 @@ public class SlottedGKDClient implements GKDClient {
 	}
 
 	@Override
-	public void handleJoinResponse(JoinResponse joinResp) {
-		startT= System.currentTimeMillis() - joinResp.time;
-		slotTime= joinResp.slot;
-		treeDepth= joinResp.depth;
-		var keyMaterial= joinResp.key.split("&");
-		var k2= Bytes.fromHex(keyMaterial[0]);
-		if (VERBOSE) log("handleJoinResponse(): k2: "+Bytes.toHex(k2));
-		
-		var selectedKeyNodes= new ArrayList<KeyNode>();
-		for (int i: new Range(1,keyMaterial.length)) selectedKeyNodes.add(KeyNode.fromJson(keyMaterial[i]));				
-		if (VERBOSE) log("handleJoinResponse(): key nodes ("+selectedKeyNodes.size()+"): "+ArrayUtils.toString(selectedKeyNodes));
-		
-		groupKeyNodes.put(joinResp.group,selectedKeyNodes);
+	public void handleJoinResponse(JoinResponse resp) {
+		try {
+			if (resp.seq<seq) {
+				if (SecureMqttClient.DEBUG) log("handleJoinResponse(): seq "+resp.seq+" < "+seq+": message is old, discarded");
+				return;
+			}
+			seq= resp.seq+1;
+			startT= System.currentTimeMillis() - resp.time;
+			slotTime= resp.slot;
+			treeDepth= resp.depth;
+			var keyMaterial= resp.getKeyMaterial(clientKey).split("&");
+			var k2= Bytes.fromHex(keyMaterial[0]);
+			if (SecureMqttClient.DEBUG) log("handleJoinResponse(): k2: "+Bytes.toHex(k2));
+			
+			var selectedKeyNodes= new ArrayList<KeyNode>();
+			for (int i: new Range(1,keyMaterial.length)) selectedKeyNodes.add(KeyNode.fromJson(keyMaterial[i]));				
+			if (SecureMqttClient.DEBUG) log("handleJoinResponse(): key nodes ("+selectedKeyNodes.size()+"): "+ArrayUtils.toString(selectedKeyNodes));
+			
+			groupKeyNodes.put(resp.group,selectedKeyNodes);			
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 }

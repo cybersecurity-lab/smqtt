@@ -46,7 +46,7 @@ public class SecureCoapServer extends CoapServer {
 	String clientId= "client-"+Random.nextInt();
 	
 	/** Long-term server secret key */
-	byte[] serverKey;
+	byte[] clientKey;
 	
 	GKDClient gkdClient;
 
@@ -71,6 +71,7 @@ public class SecureCoapServer extends CoapServer {
 	
 	private void intGKD(String clientId, byte[] clientKey, String broker, String username, String passwd) throws IOException {
 		this.clientId= clientId;
+		this.clientKey= clientKey;
 		mqttClient= new PahoClient(clientId,"tcp://"+broker,username,passwd,new MqttClientListener() {
 
 			@Override
@@ -147,7 +148,7 @@ public class SecureCoapServer extends CoapServer {
 				// else
 				var body= new String(payload);
 				joinResp= Json.fromJSON(body,JoinResponse.class);
-				if (VERBOSE) log("processReceivedMessage(): JOIN RESPONSE: group="+joinResp.group+", expires="+joinResp.expires+"s, key-material="+joinResp.key);
+				if (VERBOSE) log("processReceivedMessage(): JOIN RESPONSE: group="+joinResp.group+", expires="+joinResp.expires+"s, key-material="+joinResp.getKeyMaterial(clientKey));
 				synchronized (mqttClient) {
 					mqttClient.notifyAll();					
 				}
@@ -156,7 +157,7 @@ public class SecureCoapServer extends CoapServer {
 				if (VERBOSE) log("processReceivedMessage(): unknown topic '+topic+': message discarded");
 			}
 		}
-		catch (Exception e) {
+		catch (IOException e) {
 			e.printStackTrace();
 		}
 	}

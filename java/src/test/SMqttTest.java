@@ -2,7 +2,6 @@ package test;
 
 import java.io.IOException;
 
-import org.zoolu.util.Bytes;
 import org.zoolu.util.Flags;
 import org.zoolu.util.Random;
 import org.zoolu.util.Range;
@@ -11,6 +10,7 @@ import org.zoolu.util.log.DefaultLogger;
 import org.zoolu.util.log.WriterLogger;
 
 import it.unipr.netsec.smqtt.SecureMqttClient;
+import it.unipr.netsec.smqtt.gkd.KeyRing;
 import it.unipr.netsec.smqtt.gkd.KeyServer;
 import it.unipr.netsec.smqtt.gkd.method.SlottedGKDClient;
 import it.unipr.netsec.smqtt.gkd.method.SlottedGKDService;
@@ -28,14 +28,11 @@ public class SMqttTest {
 	private static String DEFAULT_BROKER= "127.0.0.1:1883";
 
 	/** Default GKD method type (current values: 1=static, 2=update, 3=slotted) */
-	private static int DEFAULT_GKD_TYPE= 2; // 1=static, 2=update, 3=slotted
+	private static int DEFAULT_GKD_TYPE= 3; // 1=static, 2=update, 3=slotted
 	
 	/** Number of SMQTT clients */
 	private static int NUM_CLIENTS= 3;
 	
-	/** Client key */
-	private static byte[] CLIENT_KEY= Bytes.fromHex("aaaaaaaabbbbbbbbccccccccddddddddaaaaaaaabbbbbbbbccccccccdddddddd");
-
 	/** Default MQTT QoS */
 	private static final int PUBLISH_QOS= 2;
 
@@ -62,8 +59,7 @@ public class SMqttTest {
 		long cleaningDalay= Random.nextLong(4000);
 		
 		SystemUtils.sleep(startDelay);
-		var key= Random.nextBytes(KeyServer.KEY_LENGTH);
-		var client= new SecureMqttClient(id,key,broker,null);
+		var client= new SecureMqttClient(id,KeyRing.DEFAULT_KEY,broker,null);
 		client.connect();
 		SystemUtils.sleep(joinDelay);
 		if (SecureMqttClient.GKD_TYPE==3) {
@@ -110,13 +106,9 @@ public class SMqttTest {
 			DefaultLogger.setLogger(new WriterLogger(System.out));
 			//PahoClient.VERBOSE= true;
 			if (veryVerbose) KeyServer.VERBOSE= true;
-			SlottedGKDService.VERBOSE= true;
 			SecureMqttClient.VERBOSE= true;
 			if (veryVerbose) SecureMqttClient.DEBUG= true;
-			SlottedGKDClient.VERBOSE= true;
 		}
-		
-		CLIENT_KEY= Bytes.copy(CLIENT_KEY,0,KeyServer.KEY_LENGTH);
 		
 		SecureMqttClient.GKD_TYPE= gkdType;
 		if (gkdType==3) {
