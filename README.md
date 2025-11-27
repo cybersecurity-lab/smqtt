@@ -11,7 +11,7 @@ In order to support one-to-many communications, naturally provided by MQTT throu
 For making the group key securerly shared amogst different clients a proper group key management mechanism is required.
 In particular, the Secure MQTT protocol here implemented performs group key management based on the presence of a Key Server.
 
-In this implementation, the standard MQTT support is provided via [the Eclipse Paho library](https://github.com/eclipse-paho/paho.mqtt.java).
+In this implementation, the standard MQTT support is provided via [the Eclipse Paho](https://github.com/eclipse-paho/paho.mqtt.java) library.
 
 
 ## Simple test
