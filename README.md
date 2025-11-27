@@ -11,7 +11,7 @@ In order to support one-to-many communications, naturally provided by MQTT throu
 For making the group key securerly shared amogst different clients a proper group key management mechanism is required.
 In particular, the Secure MQTT protocol here implemented performs group key management based on the presence of a Key Server.
 
-For MQTT communications the Eclipse Paho library has been used.
+In this implementation, the standard MQTT support is provided via [the Eclipse Paho library](https://github.com/eclipse-paho/paho.mqtt.java).
 
 
 ## Simple test
@@ -28,7 +28,7 @@ java -cp "java/lib/*" test.SMqttTest -v
 
 The following libraries are required and included in the /java/lib folder:
 * [zutil](https://github.com/zoolu-org/zutil) - it is a collection of some utilities; in particular ipstack Lorawan uses zutil for managing command line options, for handling byte arrays, as JSON parser, and for handling logs.
-* [ipstack](https://github.com/ipstack-dev/ipstack) - it is mainly a TCP/IP library; however it provides also generic support for handling packets aat different protocol layer.
+* [ipstack](https://github.com/ipstack-dev/ipstack) - it is mainly a TCP/IP library; however it provides also generic support for handling packets at different protocol layers.
 * [paho-mqtt](https://github.com/eclipse-paho/paho.mqtt.java) - Eclipse Java library providing the implementation of both MQTT v3.1 and MQTT v5.0.
 
 
